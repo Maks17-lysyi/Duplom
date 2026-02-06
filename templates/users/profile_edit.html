@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile • SquadUp{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card squadup-card">
+      <div class="card-body">
+        <h3 class="mb-1">Edit Profile</h3>
+        <div class="text-secondary mb-4">Keep your contact + game info up to date.</div>
+
+        <form method="post" class="vstack gap-3">
+          {% csrf_token %}
+
+          <div>
+            <label class="form-label">Email</label>
+            {{ user_form.email }}
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Steam ID</label>
+              {{ profile_form.steam_id }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Discord ID</label>
+              {{ profile_form.discord_id }}
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Main game</label>
+              {{ profile_form.main_game }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Role</label>
+              {{ profile_form.role }}
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Rank</label>
+              {{ profile_form.rank }}
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label">Bio</label>
+            {{ profile_form.bio }}
+          </div>
+
+          <div class="d-flex gap-2">
+            <button class="btn btn-neon" type="submit">Save</button>
+            <a class="btn btn-outline-purple" href="{% url 'profile' %}">Back</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const gameEl = document.getElementById("{{ profile_form.main_game.id_for_label }}");
+    const roleEl = document.getElementById("{{ profile_form.role.id_for_label }}");
+    if (!gameEl || !roleEl) return;
+
+    const roleMap = {
+      "cs2": [
+        ["entry", "Entry"], ["support", "Support"], ["igl", "IGL"], ["awp", "AWP / Sniper"], ["lurk", "Lurker"], ["flex", "Flex"]
+      ],
+      "valorant": [
+        ["duelist", "Duelist"], ["initiator", "Initiator"], ["controller", "Controller"], ["sentinel", "Sentinel"], ["flex", "Flex"]
+      ],
+      "dota2": [
+        ["pos1", "Dota Pos 1 (Carry)"], ["pos2", "Dota Pos 2 (Mid)"], ["pos3", "Dota Pos 3 (Offlane)"], ["pos4", "Dota Pos 4 (Soft Support)"], ["pos5", "Dota Pos 5 (Hard Support)"]
+      ],
+    };
+
+    function rebuildRoles() {
+      const game = gameEl.value;
+      const current = roleEl.value;
+      const options = roleMap[game] || [];
+      roleEl.innerHTML = "";
+
+      const blank = document.createElement("option");
+      blank.value = "";
+      blank.textContent = "—";
+      roleEl.appendChild(blank);
+
+      for (const [v, label] of options) {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = label;
+        roleEl.appendChild(opt);
+      }
+
+      // keep selection only if still valid
+      const valid = new Set(options.map(o => o[0]));
+      roleEl.value = valid.has(current) ? current : "";
+    }
+
+    gameEl.addEventListener("change", rebuildRoles);
+    rebuildRoles();
+  })();
+</script>
+{% endblock %}
+

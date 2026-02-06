@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Party Finder • SquadUp{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-3">
+    <div class="card squadup-card">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Filters</h5>
+
+        <form method="get" class="vstack gap-3">
+          <div>
+            <label class="form-label text-secondary">Game</label>
+            <select class="form-select squadup-input" name="game">
+              <option value="">All</option>
+              {% for v, label in game_choices %}
+              <!-- TEMPORARY FIX: Removed 'selected' logic to prevent syntax error -->
+              <option value="{{ v }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label class="form-label text-secondary">Required rank</label>
+            <select class="form-select squadup-input" name="rank">
+              <option value="">Any</option>
+              {% for v, label in rank_choices %}
+              <option value="{{ v }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label class="form-label text-secondary">Role</label>
+            <select class="form-select squadup-input" name="role">
+              <option value="">Any</option>
+              {% for v, label in role_choices %}
+              <option value="{{ v }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-check">
+            <input class="form-check-input squadup-check" type="checkbox" value="1" id="mic" name="mic">
+            <label class="form-check-label" for="mic">Has mic</label>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button class="btn btn-neon" type="submit">Apply</button>
+            <a class="btn btn-outline-purple" href="{% url 'home' %}">Reset</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-9">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <div>
+        <h2 class="mb-0">Party Finder</h2>
+        <div class="text-secondary small">Browse active parties and join if you fit.</div>
+      </div>
+      <a class="btn btn-neon" href="{% url 'lobby_create' %}">+ Create Party</a>
+    </div>
+
+    <div class="lobby-list">
+      {% for lobby in lobbies %}
+      <div class="faceit-team-card">
+
+        <!-- Header (Skill Level) -->
+        <div
+          style="position: absolute; top: 0; right: 0; padding: 0.5rem 1rem; background: #0f172a; border-bottom-left-radius: 8px; border-left: 1px solid #1e293b; border-bottom: 1px solid #1e293b;">
+          <span class="text-secondary small fw-bold">AVG. SKILL LEVEL</span>
+          <span class="ms-2 text-white fw-bold">8</span>
+        </div>
+
+        <!-- 1. SLOTS ROW (The Main Visual) -->
+        <div class="faceit-slots-area" style="margin-top: 1.5rem;">
+          {% with total_filled=lobby.participants.count %}
+          {% for slot_user in lobby.get_slots %}
+
+          {% if slot_user %}
+          <!-- FILTERED: Filled Slot -->
+          <div class="faceit-slot-card filled" title="{{ slot_user.username }}">
+            {% if slot_user == lobby.host %}
+            <div class="faceit-slot-avatar host-avatar">
+              {{ slot_user.username|slice:":1"|upper }}
+              <span
+                style="position:absolute; top:-12px; right:-8px; font-size:1.2rem; filter: drop-shadow(0 0 5px cyan);">👑</span>
+            </div>
+            {% else %}
+            <div class="faceit-slot-avatar">
+              {{ slot_user.username|slice:":1"|upper }}
+            </div>
+            {% endif %}
+
+            <div class="faceit-slot-name">{{ slot_user.username }}</div>
+
+            <!-- Role/Stats Badge -->
+            <div class="faceit-slot-stats"
+              style="color: #94a3b8; font-size: 0.7rem; margin-top: auto; margin-bottom: 0.5rem;">
+              <span class="badge bg-dark border border-secondary text-secondary">1500 ELO</span>
+            </div>
+          </div>
+
+          {% else %}
+          <!-- EMPTY SLOT LOGIC -->
+          <!-- The first empty slot (index == total_filled) is the JOIN slot -->
+          {% if forloop.counter0 == total_filled and user.is_authenticated and lobby.status != 'ended' and lobby.id not
+          in my_lobby_ids %}
+          <!-- ACTIVE JOIN SLOT -->
+          <div class="faceit-slot-card active-join"
+            style="border-color: #00f0ff; background: rgba(0, 240, 255, 0.05); cursor: pointer;"
+            onclick="document.getElementById('join-form-{{ lobby.id }}').submit();">
+            <form method="post" action="{% url 'lobby_join' lobby.id %}" id="join-form-{{ lobby.id }}"
+              style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+              {% csrf_token %}
+              <div style="font-size: 3rem; line-height: 1; color: #00f0ff; margin-bottom: 0.5rem;">+</div>
+              <div style="color: white; font-weight: 700; font-size: 0.8rem; text-transform: uppercase;">Join</div>
+            </form>
+          </div>
+
+          {% else %}
+          <!-- INACTIVE/LOCKED SLOT -->
+          <div class="faceit-slot-card empty" style="opacity: 0.3; border-style: solid; border-color: #334155;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; border: 2px dashed #475569;"></div>
+          </div>
+          {% endif %}
+
+          {% endif %}
+          {% endfor %}
+          {% endwith %}
+        </div>
+
+        <!-- 2. FOOTER (Tags & Badges) -->
+        <div class="faceit-card-footer">
+          <div class="faceit-footer-left">
+            <div class="faceit-badges-row">
+              <!-- Game Tag -->
+              <div class="faceit-tag">
+                <span style="color:#00f0ff; margin-right:4px;">🎮</span> {{ lobby.get_game_display }}
+              </div>
+              <!-- Mode Tag -->
+              <div class="faceit-tag">
+                <span style="color:#00f0ff; margin-right:4px;">⚔️</span> 5v5 Match
+              </div>
+              <!-- Region Tag -->
+              <div class="faceit-tag">
+                <span style="color:#00f0ff; margin-right:4px;">🌍</span> EU
+              </div>
+              <!-- Rank Tag -->
+              <div class="faceit-tag">
+                <span style="color:#00f0ff; margin-right:4px;">🏆</span> {{ lobby.get_required_rank_display }}
+              </div>
+              {% if lobby.mic_required %}
+              <div class="faceit-tag">
+                <span style="color:#00f0ff; margin-right:4px;">🎙️</span> Voice
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="faceit-footer-right">
+            {% if user.is_authenticated %}
+            {% if lobby.id in my_lobby_ids %}
+            <a href="{% url 'lobby_detail' lobby.id %}" class="btn btn-sm btn-outline-info">OPEN LOBBY</a>
+            {% endif %}
+            {% else %}
+            <a href="{% url 'login' %}" class="btn btn-sm btn-outline-secondary">LOGIN</a>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+      {% empty %}
+      <div class="col-12">
+        <div class="card squadup-card">
+          <div class="card-body">
+            <div class="text-center py-5">
+              <h4 class="text-white">No active lobbies</h4>
+              <div class="text-secondary mb-3">Be the first to start a match!</div>
+              <a class="btn btn-neon" href="{% url 'lobby_create' %}">Create Lobby</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% for msg in messages %}
+<div class="mb-2 {% if msg.sender == user %}text-end{% endif %}">
+    <div class="d-inline-block p-2 rounded-3 text-break
+              {% if msg.sender == user %}
+                bg-primary text-white
+              {% else %}
+                bg-dark border border-secondary text-light
+              {% endif %}">
+        {% if msg.sender != user %}
+        <div class="small fw-bold text-info mb-1">{{ msg.sender.username }}</div>
+        {% endif %}
+        {{ msg.content }}
+    </div>
+    <div class="small text-muted mt-1" style="font-size: 0.7rem;">
+        {{ msg.created_at|date:"H:i" }}
+    </div>
+</div>
+{% empty %}
+<div class="text-center text-secondary small py-4">
+    No messages yet. Say hello!
+</div>
+{% endfor %}
