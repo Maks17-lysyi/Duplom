@@ -12,6 +12,29 @@ class Lobby(models.Model):
         DOTA2 = "dota2", "Dota 2"
         VALORANT = "valorant", "Valorant"
 
+    class ValorantRank(models.TextChoices):
+        ANY = "any", "Any"
+        IRON = "iron", "Iron"
+        BRONZE = "bronze", "Bronze"
+        SILVER = "silver", "Silver"
+        GOLD = "gold", "Gold"
+        PLATINUM = "platinum", "Platinum"
+        DIAMOND = "diamond", "Diamond"
+        ASCENDANT = "ascendant", "Ascendant"
+        IMMORTAL = "immortal", "Immortal"
+        RADIANT = "radiant", "Radiant"
+
+    class Dota2Rank(models.TextChoices):
+        ANY = "any", "Any"
+        HERALD = "herald", "Herald"
+        GUARDIAN = "guardian", "Guardian"
+        CRUSADER = "crusader", "Crusader"
+        ARCHON = "archon", "Archon"
+        LEGEND = "legend", "Legend"
+        ANCIENT = "ancient", "Ancient"
+        DIVINE = "divine", "Divine"
+        IMMORTAL = "immortal", "Immortal"
+
     class Status(models.TextChoices):
         ACTIVE = "active", "Active"
         FULL = "full", "Full"
@@ -52,12 +75,27 @@ class Lobby(models.Model):
     )
     title = models.CharField(max_length=120)
     game = models.CharField(max_length=16, choices=Game.choices, default=Game.CS2)
+    
+    # Generic rank kept for legacy/other games if needed
     required_rank = models.CharField(
         max_length=16, choices=RequiredRank.choices, default=RequiredRank.ANY
     )
     required_role = models.CharField(
         max_length=16, choices=RequiredRole.choices, default=RequiredRole.ANY
     )
+    
+    # Nationality
+    country = models.CharField(max_length=64, blank=True)
+
+    # CS2 Specific Requirements
+    req_cs2_faceit_lvl = models.PositiveSmallIntegerField(null=True, blank=True)
+    req_cs2_premier_rating = models.PositiveIntegerField(null=True, blank=True)
+
+    # Valorant Specific Requirements
+    req_valorant_rank = models.CharField(max_length=16, choices=ValorantRank.choices, default=ValorantRank.ANY)
+
+    # Dota 2 Specific Requirements
+    req_dota2_rank = models.CharField(max_length=16, choices=Dota2Rank.choices, default=Dota2Rank.ANY)
     mic_required = models.BooleanField(default=False)
     slots_total = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(2), MaxValueValidator(10)], default=5

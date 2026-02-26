@@ -42,7 +42,19 @@ class UserUpdateForm(forms.ModelForm):
 class GamerProfileForm(forms.ModelForm):
     class Meta:
         model = GamerProfile
-        fields = ("steam_id", "discord_id", "bio", "main_game", "role", "rank")
+        fields = (
+            "steam_id",
+            "discord_id",
+            "bio",
+            "country",
+            "main_game",
+            "role",
+            "rank",
+            "cs2_faceit_lvl",
+            "cs2_premier_rating",
+            "valorant_rank",
+            "dota2_rank",
+        )
         widgets = {
             "bio": forms.Textarea(attrs={"rows": 4, "class": "form-control squadup-input"}),
         }
@@ -63,11 +75,12 @@ class GamerProfileForm(forms.ModelForm):
         for name, field in self.fields.items():
             if name == "bio":
                 continue
-            css = (
-                "form-select squadup-input"
-                if name in {"main_game", "role"}
-                else "form-control squadup-input"
-            )
+            if name in {
+                "main_game", "role", "valorant_rank", "dota2_rank"
+            }:
+                css = "form-select squadup-input"
+            else:
+                css = "form-control squadup-input"
             field.widget.attrs.setdefault("class", css)
 
     def clean_role(self):

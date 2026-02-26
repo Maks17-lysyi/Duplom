@@ -3,153 +3,252 @@
 {% block title %}{{ lobby.title }} • SquadUp{% endblock %}
 
 {% block content %}
-<div class="row g-4">
+
+<div class="row g-4 justify-content-center">
   <div class="col-lg-8">
-    <div class="card squadup-card">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-start">
-          <div>
-            <div class="d-flex gap-2 mb-2 flex-wrap">
-              <span class="badge squadup-badge">{{ lobby.get_game_display }}</span>
-              <span class="badge squadup-badge-purple">{{ lobby.get_required_rank_display }}</span>
-              {% if lobby.mic_required %}<span class="badge squadup-badge-purple">Mic</span>{% endif %}
+
+    <div
+      class="squad-card {% if lobby.game == 'cs2' %}glow-orange{% elif lobby.game == 'valorant' %}glow-purple{% elif lobby.game == 'dota2' %}glow-blue{% else %}glow-cyan{% endif %} mb-4"
+      style="position: relative; overflow: visible;">
+
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <div
+              style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:4px; font-weight:900; font-size:14px; border: 1px solid {% if lobby.game == 'cs2' %}#f97316{% elif lobby.game == 'valorant' %}#c084fc{% elif lobby.game == 'dota2' %}#3b82f6{% else %}#00f0ff{% endif %}; color: {% if lobby.game == 'cs2' %}#f97316{% elif lobby.game == 'valorant' %}#c084fc{% elif lobby.game == 'dota2' %}#3b82f6{% else %}#00f0ff{% endif %}; background: {% if lobby.game == 'cs2' %}rgba(249,115,22,0.1){% elif lobby.game == 'valorant' %}rgba(192,132,252,0.1){% elif lobby.game == 'dota2' %}rgba(59,130,246,0.1){% else %}rgba(0,240,255,0.1){% endif %};">
+              {{ lobby.get_game_display|slice:":1"|upper }}
             </div>
-            <h2 class="mb-1">{{ lobby.title }}</h2>
-            <div class="text-secondary small">Hosted by <span class="text-light">{{ lobby.host.username }}</span></div>
-          </div>
-
-          <div class="text-end">
-            <div class="small text-secondary">Slots</div>
-            <div class="fw-semibold">{{ lobby.slots_filled }}/{{ lobby.slots_total }}</div>
-            <div class="small {% if lobby.status == 'full' %}text-warning{% elif lobby.status == 'ended' %}text-secondary{% else %}text-success{% endif %}">
-              {{ lobby.get_status_display }}
-            </div>
-          </div>
-        </div>
-
-        {% if lobby.description %}
-          <hr class="squadup-hr">
-          <div class="text-secondary">{{ lobby.description|linebreaksbr }}</div>
-        {% endif %}
-
-        <hr class="squadup-hr">
-
-        <div class="d-flex gap-2 flex-wrap">
-          {% if user.is_authenticated %}
-            {% if is_participant %}
-              {% if lobby.host_id != user.id %}
-                <form method="post" action="{% url 'lobby_leave' lobby.id %}">
-                  {% csrf_token %}
-                  <button class="btn btn-outline-purple" type="submit">Leave Lobby</button>
-                </form>
-              {% else %}
-                <form method="post" action="{% url 'lobby_end' lobby.id %}">
-                  {% csrf_token %}
-                  <button class="btn btn-outline-purple" type="submit" {% if lobby.status == 'ended' %}disabled{% endif %}>End Lobby</button>
-                </form>
-              {% endif %}
-            {% else %}
-              <form method="post" action="{% url 'lobby_join' lobby.id %}">
-                {% csrf_token %}
-                <button class="btn btn-neon" type="submit" {% if lobby.status == 'full' or lobby.status == 'ended' %}disabled{% endif %}>Join</button>
-              </form>
+            <span class="text-white fw-bold">{{ lobby.get_game_display }}</span>
+            <span class="badge"
+              style="background: rgba(0,255,148,0.1); color: #00ff94; border: 1px solid #00ff94; font-size: 0.65rem; margin-left: 8px;">COMPETITIVE</span>
+            {% if lobby.mic_required %}
+            <span class="badge"
+              style="background: rgba(192,132,252,0.1); color: #c084fc; border: 1px solid #c084fc; font-size: 0.65rem;">MIC REQUIRED</span>
             {% endif %}
-          {% else %}
-            <a class="btn btn-neon" href="{% url 'login' %}?next={% url 'lobby_detail' lobby.id %}">Login to Join</a>
-          {% endif %}
-          <a class="btn btn-outline-neon" href="{% url 'home' %}">Back</a>
+          </div>
+          <h2 class="mb-1 fw-bold text-white">{{ lobby.title }}</h2>
+          <div class="text-muted" style="font-size: 0.9rem;">
+            Hosted by <span class="text-white fw-semibold">{{ lobby.host.username }}</span>
+          </div>
         </div>
+
+        <div class="text-end">
+          <div class="text-muted small">Players</div>
+          <div class="fw-bold text-white fs-4">{{ lobby.participants.count }}<span class="text-muted fs-6">/{{ lobby.slots_total }}</span></div>
+          <div
+            class="small fw-semibold mt-1 {% if lobby.status == 'full' %}text-warning{% elif lobby.status == 'ended' %}text-secondary{% else %}text-success{% endif %}"
+            style="letter-spacing: 0.05em; text-transform: uppercase;">
+            {{ lobby.get_status_display }}
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex gap-4 mb-4 mt-4 p-3 rounded"
+        style="background: rgba(3,7,18,0.5); border: 1px solid var(--border-slate);">
+        <div>
+          <div class="text-muted small text-uppercase fw-bold mb-1">Rank Reqm.</div>
+          <div class="text-white fw-semibold">{{ lobby.get_required_rank_display|default:"Any Rank" }}</div>
+        </div>
+        <div class="border-start border-secondary ps-4">
+          <div class="text-muted small text-uppercase fw-bold mb-1">Role Needed</div>
+          <div class="text-white fw-semibold">{{ lobby.get_required_role_display|default:"Any Role" }}</div>
+        </div>
+        {% if lobby.country %}
+        <div class="border-start border-secondary ps-4">
+          <div class="text-muted small text-uppercase fw-bold mb-1">Region</div>
+          <div class="text-white fw-semibold">{{ lobby.get_country_display }}</div>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if lobby.description %}
+      <div class="text-secondary mb-4 p-3 rounded"
+        style="background: rgba(255,255,255,0.02); border-left: 2px solid {% if lobby.game == 'cs2' %}#f97316{% elif lobby.game == 'valorant' %}#c084fc{% elif lobby.game == 'dota2' %}#3b82f6{% else %}#00f0ff{% endif %};">
+        {{ lobby.description|linebreaksbr }}
+      </div>
+      {% endif %}
+
+      <div class="d-flex gap-3 mt-4 pt-3 border-top border-secondary"
+        style="border-color: var(--border-slate)!important;">
+        {% if user.is_authenticated %}
+        {% if is_participant %}
+        {% if lobby.host_id != user.id %}
+        <form method="post" action="{% url 'lobby_leave' lobby.id %}">
+          {% csrf_token %}
+          <button class="btn btn-outline-glow" style="border-color: #ef4444; color: #ef4444!important;" type="submit">LEAVE SQUAD</button>
+        </form>
+        {% else %}
+        <form method="post" action="{% url 'lobby_end' lobby.id %}">
+          {% csrf_token %}
+          <button class="btn btn-outline-glow" style="border-color: #f97316; color: #f97316!important;" type="submit" {% if lobby.status == 'ended' %}disabled{% endif %}>END SESSION</button>
+        </form>
+        {% endif %}
+        {% else %}
+        <form method="post" action="{% url 'lobby_join' lobby.id %}">
+          {% csrf_token %}
+          <button class="btn btn-neon"
+            style="background: {% if lobby.game == 'cs2' %}#f97316{% elif lobby.game == 'valorant' %}#c084fc{% elif lobby.game == 'dota2' %}#3b82f6{% else %}#00f0ff{% endif %}; box-shadow: 0 0 20px {% if lobby.game == 'cs2' %}rgba(249,115,22,0.4){% elif lobby.game == 'valorant' %}rgba(192,132,252,0.4){% elif lobby.game == 'dota2' %}rgba(59,130,246,0.4){% else %}rgba(0,240,255,0.4){% endif %};"
+            type="submit" {% if lobby.status == 'full' or lobby.status == 'ended' %}disabled{% endif %}>JOIN SQUAD</button>
+        </form>
+        {% endif %}
+        {% else %}
+        <a class="btn btn-neon" href="{% url 'login' %}?next={% url 'lobby_detail' lobby.id %}">LOGIN TO JOIN</a>
+        {% endif %}
+        <a class="btn btn-outline-glow" href="{% url 'home' %}">BACK TO LOBBIES</a>
       </div>
     </div>
 
-    <div class="card squadup-card mt-4">
-      <div class="card-body">
-        <h5 class="mb-3">Players in lobby</h5>
-        <div class="list-group list-group-flush">
-          {% for p in participants %}
-            <div class="list-group-item squadup-list-item d-flex justify-content-between align-items-center">
-              <div>
-                <div class="fw-semibold">{{ p.user.username }}</div>
-                {% if p.user.gamer_profile %}
-                  <div class="text-secondary small">
-                    {{ p.user.gamer_profile.get_main_game_display }} • {{ p.user.gamer_profile.rank|default:"Unranked" }}
-                  </div>
+    <div class="squad-card mb-4" style="border-color: var(--border-slate);">
+      <h5 class="mb-4 text-white d-flex align-items-center gap-2">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"></path>
+        </svg>
+        Active Players ({{ lobby.participants.count }})
+      </h5>
+
+      <div class="vstack gap-3">
+        {% for p in participants %}
+        <div class="d-flex align-items-center justify-content-between p-3 rounded"
+          style="background: rgba(2,6,23,0.6); border: 1px solid var(--border-slate);">
+          <div class="d-flex align-items-center gap-3">
+            <img src="https://ui-avatars.com/api/?name={{ p.user.username }}&background=1e293b&color=fff&rounded=true"
+              width="40" height="40" class="rounded-circle border border-dark" alt="Avatar">
+            <div>
+              <div class="fw-bold text-white d-flex align-items-center gap-2">
+                {{ p.user.username }}
+                {% if p.user.id == lobby.host_id %}
+                <span class="badge bg-transparent border text-success"
+                  style="border-color: #00ff94!important; font-size: 0.6rem;">HOST</span>
                 {% endif %}
               </div>
               {% if p.user.gamer_profile %}
-                <span class="badge squadup-badge-purple">{{ p.user.gamer_profile.reputation_badge }}</span>
+              <div class="text-muted small mt-1">
+                <span
+                  style="color: {% if lobby.game == 'cs2' %}#f97316{% elif lobby.game == 'valorant' %}#c084fc{% elif lobby.game == 'dota2' %}#3b82f6{% else %}#00f0ff{% endif %};">{{ p.user.gamer_profile.get_main_game_display }}</span> • {{ p.user.gamer_profile.rank|default:"Unranked" }}
+              </div>
               {% endif %}
             </div>
-          {% empty %}
-            <div class="text-secondary">No participants yet.</div>
-          {% endfor %}
+          </div>
+
+          {% if p.user.gamer_profile %}
+          <div class="d-flex flex-column align-items-end">
+            <div class="text-muted" style="font-size:0.7rem;">REP SCORE</div>
+            <div class="badge" style="background: rgba(192,132,252,0.1); color: #c084fc; border: 1px solid #c084fc;">{{ p.user.gamer_profile.reputation_badge }}</div>
+          </div>
+          {% endif %}
         </div>
+        {% empty %}
+        <div class="text-center text-muted p-4">No participants yet. Be the first to join!</div>
+        {% endfor %}
       </div>
     </div>
   </div>
 
   <div class="col-lg-4">
-    <div class="card squadup-card mb-4">
-      <div class="card-body">
-        <h5 class="mb-2">Host contact</h5>
-        {% if reveal_host_contacts and host_profile %}
-          <div class="text-secondary small mb-2">Visible because you joined.</div>
-          <div class="vstack gap-2">
-            <div class="squadup-contact">
-              <div class="text-secondary small">Discord</div>
-              <div class="fw-semibold">{{ host_profile.discord_id|default:"Not set" }}</div>
+
+    <div class="squad-card mb-4" style="border-color: var(--border-slate);">
+      <h5 class="mb-3 text-white d-flex align-items-center gap-2">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path
+            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+          </path>
+        </svg>
+        Host Comms
+      </h5>
+
+      {% if reveal_host_contacts and host_profile %}
+      <div class="alert mb-3 text-center"
+        style="background: rgba(0,255,148,0.1); border: 1px solid rgba(0,255,148,0.3); color: #00ff94; padding: 0.5rem; font-size: 0.8rem;">
+        Unlocked: You joined the squad
+      </div>
+
+      <div class="vstack gap-2">
+        <div class="d-flex align-items-center justify-content-between p-2 rounded"
+          style="background: rgba(2,6,23,0.5);">
+          <div class="d-flex align-items-center gap-2">
+            <div
+              style="width:32px;height:32px;background:#5865F2;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z" />
+              </svg>
             </div>
-            <div class="squadup-contact">
-              <div class="text-secondary small">Steam</div>
+            <div class="text-white fw-bold">{{ host_profile.discord_id|default:"Not set" }}</div>
+          </div>
+          <button class="btn btn-sm" style="background: rgba(255,255,255,0.1); color: white; border-radius: 4px;"
+            onclick="navigator.clipboard.writeText('{{ host_profile.discord_id }}');">Copy</button>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between p-2 rounded"
+          style="background: rgba(2,6,23,0.5);">
+          <div class="d-flex align-items-center gap-2">
+            <div
+              style="width:32px;height:32px;background:#171a21;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
+                <path d="M11.979 0C5.353 0 0 5.373 0 12c0 2.518.777 4.846 2.096 6.758l3.654-5.263c-.025-.233-.041-.468-.041-.715 0-2.81 2.278-5.088 5.088-5.088 2.809 0 5.088 2.278 5.088 5.088 0 2.809-2.279 5.087-5.088 5.087-.804 0-1.558-.184-2.228-.506l-3.328 4.793A11.983 11.983 0 0 0 11.979 24c6.626 0 12-5.373 12-12s-5.374-12-12-12zm-.188 15.688c-1.604 0-2.903-1.3-2.903-2.903 0-1.603 1.299-2.902 2.903-2.902 1.603 0 2.902 1.299 2.902 2.902 0 1.603-1.299 2.903-2.902 2.903zM7.221 16.71c-.961 0-1.831-.358-2.51-.951l-4.11 5.92A11.97 11.97 0 0 0 11.979 24c.732 0 1.442-.074 2.131-.2l-4.572-6.586c-.722.316-1.512.496-2.317.496z" />
+              </svg>
+            </div>
+            <div class="text-white fw-bold">
               {% if host_profile.steam_id %}
-                <a class="link-neon" href="https://steamcommunity.com/profiles/{{ host_profile.steam_id }}" target="_blank" rel="noopener">
-                  View profile
-                </a>
+              <a class="text-white text-decoration-none" href="https://steamcommunity.com/profiles/{{ host_profile.steam_id }}" target="_blank" rel="noopener">Steam Profile ↗</a>
               {% else %}
-                <div class="fw-semibold">Not set</div>
+              Not set
               {% endif %}
             </div>
           </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="text-center p-4">
+        <div class="mb-3">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--border-slate-light)" stroke-width="1.5">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <div class="text-muted small">Join the squad to unlock host contact info like Discord and Steam details.</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="squad-card p-0" style="height: 500px; display: flex; flex-direction: column; border-color: var(--border-slate);">
+      <div class="p-3 border-bottom" style="border-color: var(--border-slate)!important; background: rgba(3,7,18,0.3);">
+        <h5 class="mb-0 text-white d-flex align-items-center gap-2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          Comms Channel
+        </h5>
+      </div>
+
+      <div class="flex-grow-1 p-3 overflow-auto" id="chat-messages" style="background: rgba(2,6,23,0.4);" hx-get="{% url 'lobby_chat_messages' lobby.id %}" hx-trigger="load, every 3s">
+        <div class="text-center text-muted small mt-5">
+          <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div><br>
+          Establishing secure connection...
+        </div>
+      </div>
+
+      <div class="p-3 border-top" style="border-color: var(--border-slate)!important; background: rgba(3,7,18,0.8);">
+        {% if user.is_authenticated %}
+        <form hx-post="{% url 'lobby_chat_send' lobby.id %}" hx-target="#chat-messages" hx-on::after-request="this.reset()">
+          {% csrf_token %}
+          <div class="input-group">
+            <input type="text" name="content" class="form-control"
+              style="background: #020617; border-color: var(--border-slate); color: white;"
+              placeholder="Message squad..." required autocomplete="off">
+            <button class="btn btn-neon" style="padding: 0.5rem 1.5rem;" type="submit">SEND</button>
+          </div>
+        </form>
         {% else %}
-          <div class="text-secondary">Join the lobby to reveal host contact info.</div>
+        <div class="text-center small text-muted">
+          <a href="{% url 'login' %}?next={{ request.path }}"
+            style="color: var(--primary-glow); text-decoration: none; font-weight: bold;">LOGIN</a> to access team comms
+        </div>
         {% endif %}
       </div>
     </div>
-
-    <!-- Lobby Chat Card -->
-    <div class="card squadup-card" style="height: 500px; display: flex; flex-direction: column;">
-        <div class="card-body p-0 d-flex flex-column h-100">
-             <div class="p-3 border-bottom border-secondary-subtle">
-                <h5 class="mb-0">Lobby Chat</h5>
-             </div>
-             
-             <div class="flex-grow-1 p-3 overflow-auto" id="chat-messages"
-                  hx-get="{% url 'lobby_chat_messages' lobby.id %}"
-                  hx-trigger="load, every 3s">
-                  <!-- Messages load here -->
-                  <div class="text-center text-muted small mt-5">Loading chat...</div>
-             </div>
-
-             <div class="p-3 border-top border-secondary-subtle">
-               {% if user.is_authenticated %}
-               <form hx-post="{% url 'lobby_chat_send' lobby.id %}" 
-                     hx-target="#chat-messages" 
-                     hx-on::after-request="this.reset()">
-                 {% csrf_token %}
-                 <div class="input-group">
-                   <input type="text" name="content" class="form-control squadup-input" placeholder="Message..." required autocomplete="off">
-                   <button class="btn btn-neon" type="submit">Send</button>
-                 </div>
-               </form>
-               {% else %}
-                 <div class="text-center small text-muted">
-                     <a href="{% url 'login' %}?next={{ request.path }}" class="link-neon">Login</a> to chat
-                 </div>
-               {% endif %}
-             </div>
-        </div>
-    </div>
-
   </div>
 </div>
+
 {% endblock %}

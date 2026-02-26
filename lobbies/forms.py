@@ -9,14 +9,19 @@ class LobbyForm(forms.ModelForm):
         fields = (
             "title",
             "game",
+            "country",
             "required_rank",
             "required_role",
+            "req_cs2_faceit_lvl",
+            "req_cs2_premier_rating",
+            "req_valorant_rank",
+            "req_dota2_rank",
             "mic_required",
             "slots_total",
             "description",
         )
         widgets = {
-            "description": forms.Textarea(attrs={"rows": 4, "class": "form-control squadup-input"}),
+            "description": forms.Textarea(attrs={"rows": 4, "class": "squadup-input-neon"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -36,14 +41,12 @@ class LobbyForm(forms.ModelForm):
         for name, field in self.fields.items():
             if name == "description":
                 continue
-            if name in {"game", "required_rank", "required_role"}:
-                field.widget.attrs.setdefault("class", "form-select squadup-input")
+            if name in {"game", "country", "required_rank", "required_role", "req_valorant_rank", "req_dota2_rank"}:
+                field.widget.attrs.setdefault("class", "squadup-select-neon")
             elif name == "mic_required":
                 field.widget.attrs.setdefault("class", "form-check-input squadup-check")
-            elif name == "slots_total":
-                field.widget.attrs.setdefault("class", "form-control squadup-input")
             else:
-                field.widget.attrs.setdefault("class", "form-control squadup-input")
+                field.widget.attrs.setdefault("class", "squadup-input-neon")
 
     def clean_required_role(self):
         role = self.cleaned_data.get("required_role") or "any"

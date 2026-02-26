@@ -37,6 +37,27 @@ class GamerProfile(models.Model):
         MainGame.DOTA2: {"pos1", "pos2", "pos3", "pos4", "pos5"},
     }
 
+    class ValorantRank(models.TextChoices):
+        IRON = "iron", "Iron"
+        BRONZE = "bronze", "Bronze"
+        SILVER = "silver", "Silver"
+        GOLD = "gold", "Gold"
+        PLATINUM = "platinum", "Platinum"
+        DIAMOND = "diamond", "Diamond"
+        ASCENDANT = "ascendant", "Ascendant"
+        IMMORTAL = "immortal", "Immortal"
+        RADIANT = "radiant", "Radiant"
+
+    class Dota2Rank(models.TextChoices):
+        HERALD = "herald", "Herald"
+        GUARDIAN = "guardian", "Guardian"
+        CRUSADER = "crusader", "Crusader"
+        ARCHON = "archon", "Archon"
+        LEGEND = "legend", "Legend"
+        ANCIENT = "ancient", "Ancient"
+        DIVINE = "divine", "Divine"
+        IMMORTAL = "immortal", "Immortal"
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="gamer_profile"
     )
@@ -49,7 +70,20 @@ class GamerProfile(models.Model):
         max_length=16, choices=MainGame.choices, default=MainGame.CS2
     )
     role = models.CharField(max_length=16, choices=Role.choices, blank=True)
-    rank = models.CharField(max_length=64, blank=True)
+    rank = models.CharField(max_length=64, blank=True) # Kept for legacy if needed
+
+    # Nationality
+    country = models.CharField(max_length=64, blank=True)
+
+    # CS2 Specific
+    cs2_faceit_lvl = models.PositiveSmallIntegerField(null=True, blank=True)
+    cs2_premier_rating = models.PositiveIntegerField(null=True, blank=True)
+
+    # Valorant Specific
+    valorant_rank = models.CharField(max_length=16, choices=ValorantRank.choices, blank=True)
+
+    # Dota 2 Specific
+    dota2_rank = models.CharField(max_length=16, choices=Dota2Rank.choices, blank=True)
 
     updated_at = models.DateTimeField(auto_now=True)
 

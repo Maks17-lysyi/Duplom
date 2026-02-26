@@ -4,69 +4,194 @@
 
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-lg-7">
-    <div class="card squadup-card">
-      <div class="card-body">
-        <h3 class="mb-1">Create a Lobby</h3>
+  <div class="col-lg-9 col-xl-8 position-relative">
+    <div class="position-absolute" style="top: 0; right: 0; z-index: 10;">
+      <button class="btn btn-neon" onclick="document.querySelector('form').submit()"
+        style="padding: 0.8rem 2rem;">CREATE</button>
+    </div>
+    <div class="card bg-transparent border-0">
+      <div class="card-body p-0">
+        <h3 class="mb-1 text-white">Create Party</h3>
         <div class="text-secondary mb-4">Post your squad needs and start recruiting.</div>
 
-        <form method="post" class="vstack gap-3">
+        <form method="post" class="vstack gap-0">
           {% csrf_token %}
 
-          {% if form.non_field_errors %}
+          <div class="neon-panel-green mb-4 position-relative">
+            <!-- CREATE button top right positioned absolutely or just floating? In mockup it's top right of the page but also bottom left of the panel. Wait, it's just the panel. -->
+
+            {% if form.non_field_errors %}
             <div class="alert alert-danger squadup-alert">{{ form.non_field_errors }}</div>
-          {% endif %}
+            {% endif %}
 
-          <div>
-            <label class="form-label">Title</label>
-            {{ form.title }}
-            {% if form.title.errors %}<div class="text-danger small">{{ form.title.errors }}</div>{% endif %}
-          </div>
+            <div class="mb-4">
+              <label class="form-label text-white">Title</label>
+              {{ form.title }}
+              {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors }}</div>{% endif %}
+            </div>
 
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">Game</label>
-              {{ form.game }}
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">Required rank</label>
-              {{ form.required_rank }}
-            </div>
-          </div>
-
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">Required role</label>
-              {{ form.required_role }}
-            </div>
-          </div>
-
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">Slots total</label>
-              {{ form.slots_total }}
-            </div>
-            <div class="col-md-6 d-flex align-items-end">
-              <div class="form-check">
-                {{ form.mic_required }}
-                <label class="form-check-label" for="{{ form.mic_required.id_for_label }}">Mic required</label>
+            <div class="row g-4 mb-4">
+              <div class="col-md-4">
+                <label class="form-label text-white">Game</label>
+                {{ form.game }}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label text-white">Nationality Req.</label>
+                {{ form.country }}
+              </div>
+              <div class="col-md-4">
+                <label class="form-label text-white">Required role</label>
+                {{ form.required_role }}
               </div>
             </div>
-          </div>
 
-          <div>
-            <label class="form-label">Description</label>
-            {{ form.description }}
-          </div>
+            <!-- Dynamic Game Specific Rank Requirements -->
+            <div class="row g-4 mb-4 lobby-game-specific filter-cs2 d-none">
+              <div class="col-md-6">
+                <label class="form-label text-white">Min Faceit Level</label>
+                <div class="input-icon-wrapper">
+                  <span class="input-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2">
+                      <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg></span>
+                  {{ form.req_cs2_faceit_lvl }}
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label text-white">Min Premier Rating</label>
+                <div class="input-icon-wrapper">
+                  <span class="input-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2">
+                      <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg></span>
+                  {{ form.req_cs2_premier_rating }}
+                </div>
+              </div>
+            </div>
 
-          <div class="d-flex gap-2">
-            <button class="btn btn-neon" type="submit">Create</button>
-            <a class="btn btn-outline-purple" href="{% url 'home' %}">Cancel</a>
+            <div class="row g-4 mb-4 lobby-game-specific filter-valorant d-none">
+              <div class="col-md-6">
+                <label class="form-label text-white">Min Valorant Rank</label>
+                {{ form.req_valorant_rank }}
+              </div>
+            </div>
+
+            <div class="row g-4 mb-4 lobby-game-specific filter-dota2 d-none">
+              <div class="col-md-6">
+                <label class="form-label text-white">Min Dota 2 Rank</label>
+                {{ form.req_dota2_rank }}
+              </div>
+            </div>
+
+            <!-- Legacy Rank kept for safety -->
+            <div class="row g-4 mb-4">
+              <div class="col-md-12">
+                <label class="form-label text-muted small">Other Game Rank Req. (If applicable)</label>
+                {{ form.required_rank }}
+              </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+              <div class="col-md-5">
+                <label class="form-label text-white">slots total</label>
+                <div class="input-icon-wrapper">
+                  <span class="input-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg></span>
+                  {{ form.slots_total }}
+                </div>
+              </div>
+              <div class="col-md-7 d-flex align-items-center pt-2">
+                <div class="d-flex align-items-center gap-2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                  </svg>
+                  <label class="text-white fw-bold mb-0 me-3" for="{{ form.mic_required.id_for_label }}"
+                    style="font-size: 0.95rem;">Mic required</label>
+                  <label class="toggle-switch m-0">
+                    {{ form.mic_required }}
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-5">
+              <label class="form-label text-white">Description</label>
+              {{ form.description }}
+            </div>
+
+            <div class="d-flex gap-3 align-items-center">
+              <button class="btn btn-neon px-5 py-2" type="submit" style="font-size: 1rem;">CREATE</button>
+              <a class="text-muted text-decoration-none" href="{% url 'home' %}"
+                style="font-weight: 500; font-size: 0.95rem; text-decoration: underline !important;">Cancel</a>
+            </div>
           </div>
         </form>
       </div>
     </div>
   </div>
 </div>
-{% endblock %}
 
+<script>
+  (function () {
+    const gameEl = document.getElementById("{{ form.game.id_for_label }}");
+    const roleEl = document.getElementById("{{ form.required_role.id_for_label }}");
+    if (!gameEl || !roleEl) return;
+
+    const roleMap = {
+      "cs2": [
+        ["entry", "Entry"], ["support", "Support"], ["igl", "IGL"], ["awp", "AWP / Sniper"], ["lurk", "Lurker"], ["flex", "Flex"]
+      ],
+      "valorant": [
+        ["duelist", "Duelist"], ["initiator", "Initiator"], ["controller", "Controller"], ["sentinel", "Sentinel"], ["flex", "Flex"]
+      ],
+      "dota2": [
+        ["pos1", "Dota Pos 1 (Carry)"], ["pos2", "Dota Pos 2 (Mid)"], ["pos3", "Dota Pos 3 (Offlane)"], ["pos4", "Dota Pos 4 (Soft Support)"], ["pos5", "Dota Pos 5 (Hard Support)"]
+      ],
+    };
+
+    function rebuildRolesAndRanks() {
+      const game = gameEl.value;
+      const currentRole = roleEl.value;
+      const options = roleMap[game] || [];
+      roleEl.innerHTML = "";
+
+      const anyOpt = document.createElement("option");
+      anyOpt.value = "any";
+      anyOpt.textContent = "Any";
+      roleEl.appendChild(anyOpt);
+
+      for (const [v, label] of options) {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = label;
+        roleEl.appendChild(opt);
+      }
+
+      // keep selection only if still valid
+      const valid = new Set(["any", ...options.map(o => o[0])]);
+      roleEl.value = valid.has(currentRole) ? currentRole : "any";
+
+      // Handle showing/hiding game specific ranks
+      document.querySelectorAll('.lobby-game-specific').forEach(el => el.classList.add('d-none'));
+      if (game) {
+        const targetConfig = document.querySelector(`.lobby-game-specific.filter-${game}`);
+        if (targetConfig) {
+          targetConfig.classList.remove('d-none');
+        }
+      }
+    }
+
+    gameEl.addEventListener("change", rebuildRolesAndRanks);
+    rebuildRolesAndRanks();
+  })();
+</script>
+{% endblock %}

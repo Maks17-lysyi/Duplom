@@ -29,7 +29,7 @@
             </div>
           </div>
 
-          <div class="row g-3">
+          <div class="row g-3 mt-1">
             <div class="col-md-6">
               <label class="form-label">Main game</label>
               {{ profile_form.main_game }}
@@ -38,11 +38,42 @@
               <label class="form-label">Role</label>
               {{ profile_form.role }}
             </div>
+            <div class="col-md-6">
+              <label class="form-label">Nationality (Country)</label>
+              {{ profile_form.country }}
+            </div>
           </div>
 
-          <div class="row g-3">
+          <!-- Dynamic Game Specific Rank Fields -->
+          <div class="row g-3 profile-game-specific filter-cs2 d-none mt-1">
             <div class="col-md-6">
-              <label class="form-label">Rank</label>
+              <label class="form-label">Faceit Level</label>
+              {{ profile_form.cs2_faceit_lvl }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Premier Rating</label>
+              {{ profile_form.cs2_premier_rating }}
+            </div>
+          </div>
+
+          <div class="row g-3 profile-game-specific filter-valorant d-none mt-1">
+            <div class="col-md-6">
+              <label class="form-label">Valorant Rank</label>
+              {{ profile_form.valorant_rank }}
+            </div>
+          </div>
+
+          <div class="row g-3 profile-game-specific filter-dota2 d-none mt-1">
+            <div class="col-md-6">
+              <label class="form-label">Dota 2 Rank</label>
+              {{ profile_form.dota2_rank }}
+            </div>
+          </div>
+
+          <!-- Legacy Rank kept for safety -->
+          <div class="row g-3 mt-1">
+            <div class="col-md-12">
+              <label class="form-label text-muted small">Other Game Rank (If applicable)</label>
               {{ profile_form.rank }}
             </div>
           </div>
@@ -80,9 +111,9 @@
       ],
     };
 
-    function rebuildRoles() {
+    function rebuildRolesAndRanks() {
       const game = gameEl.value;
-      const current = roleEl.value;
+      const currentRole = roleEl.value;
       const options = roleMap[game] || [];
       roleEl.innerHTML = "";
 
@@ -100,12 +131,20 @@
 
       // keep selection only if still valid
       const valid = new Set(options.map(o => o[0]));
-      roleEl.value = valid.has(current) ? current : "";
+      roleEl.value = valid.has(currentRole) ? currentRole : "";
+
+      // Handle showing/hiding game specific ranks
+      document.querySelectorAll('.profile-game-specific').forEach(el => el.classList.add('d-none'));
+      if (game) {
+        const targetConfig = document.querySelector(`.profile-game-specific.filter-${game}`);
+        if (targetConfig) {
+          targetConfig.classList.remove('d-none');
+        }
+      }
     }
 
-    gameEl.addEventListener("change", rebuildRoles);
-    rebuildRoles();
+    gameEl.addEventListener("change", rebuildRolesAndRanks);
+    rebuildRolesAndRanks();
   })();
 </script>
 {% endblock %}
-

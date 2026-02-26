@@ -1,0 +1,113 @@
+{% load static %}
+{% if lobbies %}
+{% for lobby in lobbies %}
+{% cycle 'glow-green' 'glow-purple' 'glow-blue' 'glow-orange' as glow_class silent %}
+{% cycle '#00f0ff' '#c084fc' '#3b82f6' '#f97316' as game_color silent %}
+{% cycle 'RADIANT' 'MASTER' 'DIAMOND' 'PLATINUM' as rank_text silent %}
+
+<div class="col-md-6 col-xl-4">
+    <div class="squad-card {{ glow_class }}">
+
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <div
+                    style="width:24px; height:24px; display:flex; align-items:center; justify-content:center; border-radius:4px; font-weight:800; font-size:12px; border: 1px solid {{ game_color }}; color: {{ game_color }}; background: rgba(0,240,255,0.05);">
+                    {{ lobby.get_game_display|slice:":1"|upper }}
+                </div>
+                <span class="text-white fw-bold" style="font-size:0.95rem;">{{ lobby.get_game_display }}</span>
+            </div>
+            <span class="badge"
+                style="background: rgba(0,255,148,0.1); color: #00ff94; border: 1px solid #00ff94; font-size: 0.65rem;">
+                COMPETITIVE
+            </span>
+        </div>
+
+        <div class="rank-icon-container">
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="{{ game_color }}" opacity="0.8"
+                style="filter: drop-shadow(0 0 10px {{ game_color }});">
+                <polygon points="12 2 22 12 12 22 2 12"></polygon>
+            </svg>
+            <h4 class="mt-3 mb-0 text-white" style="letter-spacing: 0.1em; text-transform: uppercase;">{{ rank_text }}
+            </h4>
+            <span class="text-muted" style="font-size:0.75rem;">{{ lobby.get_required_rank_display }}</span>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-auto border-top border-secondary pt-3"
+            style="border-color: #1e293b!important;">
+            <div class="d-flex align-items-center gap-2">
+                <img src="https://ui-avatars.com/api/?name={{ lobby.host.username }}&amp;background=1e293b&amp;color={{ game_color|cut:'#' }}&amp;rounded=true"
+                    width="28" height="28" class="rounded-circle" alt="{{ lobby.host.username }} Avatar" />
+                <div>
+                    <div class="text-white fw-bold" style="font-size:0.85rem; line-height: 1;">{{ lobby.host.username }}
+                    </div>
+                    <div
+                        style="font-size:0.65rem; color:#00ff94; display:flex; align-items:center; gap:4px; margin-top: 4px;">
+                        <span style="width:6px; height:6px; background:#00ff94; border-radius:50%;"></span>
+                        Host
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2 text-muted">
+                {% if lobby.mic_required %}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                </svg>
+                {% endif %}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path
+                        d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                    </path>
+                </svg>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-3 text-muted" style="font-size:0.75rem;">
+            <span class="fw-bold text-white">{{ lobby.participants.count }}/{{ lobby.get_slots|length }} Players</span>
+            <span class="d-flex align-items-center gap-1">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                {{ lobby.created_at|timesince }} ago
+            </span>
+        </div>
+
+        <div class="mt-3">
+            {% if user.is_authenticated and lobby.id not in my_lobby_ids %}
+            <form method="post" action="{% url 'lobby_join' lobby.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-join-squad"
+                    style="background:{{ game_color }}; box-shadow: 0 0 15px {{ game_color }};">JOIN SQUAD</button>
+            </form>
+            {% else %}
+            <a href="{% url 'lobby_detail' lobby.id %}"
+                class="btn btn-view-details d-block text-center text-decoration-none">VIEW DETAILS</a>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="col-md-6 col-xl-4">
+    <div class="squad-card glow-cyan d-flex align-items-center justify-content-center"
+        style="border: 2px dashed #334155; background: rgba(15,23,42,0.4); text-align: center; padding: 3rem 1rem;">
+        <div>
+            <div
+                style="width: 60px; height: 60px; background: rgba(0,240,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: #00f0ff;">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+            </div>
+            <h5 class="text-white mb-2">No active lobbies</h5>
+            <p class="text-muted small mb-4">Be the first to start a match!</p>
+            <a href="{% url 'lobby_create' %}" class="btn-neon px-4" style="font-size:0.75rem;">Create New</a>
+        </div>
+    </div>
+</div>
+{% endif %}

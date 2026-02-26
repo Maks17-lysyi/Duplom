@@ -49,6 +49,20 @@ body.squadup-body {
   flex-direction: column;
 }
 
+/* Cursor following gradient */
+body.squadup-body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.03) 0%, rgba(0, 240, 255, 0.05) 5%, transparent 20%);
+  pointer-events: none;
+  z-index: 10;
+  transition: opacity 0.3s ease;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -261,6 +275,73 @@ a:hover {
 }
 
 /* =========================================
+   Hero Action Buttons
+   ========================================= */
+
+.btn-hero-neon {
+  background: #020617;
+  color: var(--success-glow) !important;
+  font-weight: 800;
+  border: 1px solid rgba(0, 255, 148, 0.3);
+  border-radius: 50px;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  padding: 1rem 2.5rem;
+  box-shadow: 0 0 40px rgba(0, 255, 148, 0.4), inset 0 0 10px rgba(0, 255, 148, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  position: relative;
+}
+
+.btn-hero-neon:hover {
+  background: #0f172a;
+  box-shadow: 0 0 60px rgba(0, 255, 148, 0.6), inset 0 0 20px rgba(0, 255, 148, 0.2);
+  transform: translateY(-3px);
+  border-color: rgba(0, 255, 148, 0.6);
+  color: var(--success-glow) !important;
+}
+
+.btn-hero-neon svg {
+  background: var(--success-glow);
+  color: #000;
+  border-radius: 50%;
+  padding: 3px;
+  width: 24px;
+  height: 24px;
+}
+
+.btn-hero-outline {
+  background: rgba(2, 6, 23, 0.6);
+  color: #fff !important;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50px;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 0.05em;
+  padding: 1rem 2.5rem;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  backdrop-filter: blur(8px);
+}
+
+.btn-hero-outline:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-3px);
+  color: #fff !important;
+}
+
+/* =========================================
    Sidebar / Filters
    ========================================= */
 
@@ -351,6 +432,64 @@ a:hover {
   cursor: pointer;
   transition: all 0.2s;
   flex: 1;
+}
+
+/* Dual Range Slider Setup */
+.dual-slider-container {
+  position: relative;
+  height: 24px;
+  width: 100%;
+}
+
+.dual-slider-track {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 4px;
+  width: 100%;
+  background: var(--border-slate);
+  border-radius: 2px;
+  z-index: 1;
+}
+
+.dual-slider-fill {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 4px;
+  background: var(--success-glow);
+  box-shadow: 0 0 10px rgba(0, 255, 148, 0.4);
+  z-index: 2;
+  border-radius: 2px;
+}
+
+.dual-slider-input {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  -webkit-appearance: none;
+  background: transparent;
+  pointer-events: none;
+  z-index: 3;
+  margin: 0;
+}
+
+.dual-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 16px;
+  height: 16px;
+  background: #020617;
+  /* Matches sidebar bg to hide track */
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+  cursor: pointer;
+}
+
+.dual-slider-input:focus {
+  outline: none;
 }
 
 .filter-btn:hover {
@@ -689,4 +828,105 @@ a:hover {
   border: 1px solid var(--primary-glow);
   color: #fff;
   border-radius: 8px;
+}
+
+/* =========================================
+   Redesign Panels (Create Party / Profile)
+   ========================================= */
+.neon-panel-green {
+  background: #020617;
+  border: 2px solid rgba(0, 255, 148, 0.6);
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 255, 148, 0.2), inset 0 0 10px rgba(0, 255, 148, 0.05);
+  padding: 2rem;
+  color: #fff;
+}
+
+.neon-panel-purple {
+  background: #020617;
+  border: 2px solid rgba(192, 132, 252, 0.6);
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(192, 132, 252, 0.2), inset 0 0 10px rgba(192, 132, 252, 0.05);
+  padding: 1.5rem;
+  color: #fff;
+}
+
+.neon-panel-card {
+  background: #0f172a;
+  border: 2px solid rgba(0, 255, 148, 0.6);
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 255, 148, 0.15);
+  padding: 1.25rem;
+  color: #fff;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.neon-panel-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px rgba(0, 255, 148, 0.3);
+}
+
+.squadup-input-neon,
+.squadup-select-neon {
+  background: #0f172a !important;
+  border: 1px solid rgba(0, 255, 148, 0.4) !important;
+  color: #fff !important;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  width: 100%;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.squadup-input-neon:focus,
+.squadup-select-neon:focus {
+  outline: none;
+  border-color: rgba(0, 255, 148, 0.8) !important;
+  box-shadow: 0 0 10px rgba(0, 255, 148, 0.3);
+}
+
+.squadup-select-neon {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2300ffa4%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 1rem top 50% !important;
+  background-size: 0.65rem auto !important;
+}
+
+.input-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon-wrapper .input-icon {
+  position: absolute;
+  left: 1rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.input-icon-wrapper .squadup-input-neon {
+  padding-left: 2.75rem;
+}
+
+.game-icon-box {
+  width: 48px;
+  height: 48px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-slate);
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.game-icon-box img {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
 }

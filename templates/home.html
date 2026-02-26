@@ -29,15 +29,15 @@
         </p>
 
         <div class="d-flex flex-wrap gap-3 align-items-center mb-5">
-            <a href="{% url 'lobby_create' %}" class="btn-neon">
+            <a href="{% url 'lobby_create' %}" class="btn-hero-neon">
                 CREATE LOBBY
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                     <path d="M12 5v14m-7-7h14"></path>
                 </svg>
             </a>
-            <a href="#parties" class="btn-outline-glow">
+            <a href="#parties" class="btn-hero-outline">
                 BROWSE PARTIES
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M5 12h14m-7-7l7 7-7 7"></path>
                 </svg>
             </a>
@@ -65,8 +65,8 @@
     <div class="col-lg-6 position-relative d-none d-lg-block" style="height: 500px;">
         <div
             style="position: absolute; right: 0; top: 0; bottom: 0; width: 85%; border-radius: 20px; overflow: hidden; border: 1px solid var(--border-glass);">
-            <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop"
-                style="width: 100%; height: 100%; object-fit: cover; opacity: 0.6;" alt="Gamer Background">
+            <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&amp;w=2070&amp;auto=format&amp;fit=crop"
+                style="width: 100%; height: 100%; object-fit: cover; opacity: 0.6;" alt="Gamer Background" />
             <div
                 style="position: absolute; inset: 0; background: linear-gradient(90deg, #030712 0%, transparent 100%);">
             </div>
@@ -82,10 +82,11 @@
             </div>
             <div class="text-muted small mb-3">Looking for 2 players</div>
             <div class="d-flex gap-1">
-                <img src="https://ui-avatars.com/api/?name=Jett&background=0f172a&color=fff&rounded=true" width="28"
-                    height="28" class="rounded-circle border border-dark">
-                <img src="https://ui-avatars.com/api/?name=Omen&background=0f172a&color=fff&rounded=true" width="28"
-                    height="28" class="rounded-circle border border-dark" style="margin-left:-10px;">
+                <img src="https://ui-avatars.com/api/?name=Jett&amp;background=0f172a&amp;color=fff&amp;rounded=true"
+                    width="28" height="28" class="rounded-circle border border-dark" alt="Player 1" />
+                <img src="https://ui-avatars.com/api/?name=Omen&amp;background=0f172a&amp;color=fff&amp;rounded=true"
+                    width="28" height="28" class="rounded-circle border border-dark" style="margin-left:-10px;"
+                    alt="Player 2" />
                 <div
                     style="width:28px; height:28px; background:#1e293b; color:#94a3b8; border-radius:50%; font-size:10px; display:flex; align-items:center; justify-content:center; margin-left:-10px; border:1px solid #000;">
                     +2</div>
@@ -99,7 +100,8 @@
                     style="width:24px; height:24px; background:#c084fc; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:12px; font-weight:700;">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2L2 22h20L12 2z" />
-                    </svg></div>
+                    </svg>
+                </div>
                 <span class="text-white fw-bold">Apex Legends</span>
             </div>
             <div class="text-muted small mb-2">Ranked Grind - Gold+</div>
@@ -113,9 +115,17 @@
 
 <style>
     @keyframes float {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-15px); }
-        100% { transform: translateY(0px); }
+        0% {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(-15px);
+        }
+
+        100% {
+            transform: translateY(0px);
+        }
     }
 </style>
 
@@ -136,7 +146,7 @@
                         <line x1="9" y1="8" x2="15" y2="8"></line>
                         <line x1="17" y1="16" x2="23" y2="16"></line>
                     </svg>
-                    Filters
+                    Filters Panel
                 </h4>
                 <a href="{% url 'home' %}" class="text-muted small text-decoration-none">Reset</a>
             </div>
@@ -144,80 +154,121 @@
             <form method="get" class="vstack gap-4">
                 <div>
                     <div class="filter-label">GAME</div>
-                    <select class="filter-select" name="game" onchange="this.form.submit()">
+                    <select class="filter-select" name="game" id="filter-game">
                         <option value="">All Games</option>
                         {% for v, label in game_choices %}
-                        <option value="{{ v }}" {% if request.GET.game == v|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                        <option value="{{ v }}" {% if request.GET.game == v|stringformat:"s" %}selected{% endif %}>
+                            {{ label }}
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
 
-                <div>
-                    <div class="d-flex justify-content-between">
-                        <div class="filter-label">RANK RANGE</div>
-                        <span class="text-info small" style="color:#00f0ff!important;">Gold - Diamond</span>
+                <div class="game-filter filter-cs2 d-none">
+                    <div class="filter-label mb-3 text-muted">DYNAMIC GAME FILTERS</div>
+
+                    <!-- Faceit Range -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-white fw-bold d-flex align-items-center gap-1" style="font-size:0.85rem;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="#f26a21">
+                                    <path d="M22.9 12l-10.9 6.3v-12.6zM11.1 18.3l-10.9-6.3 10.9-6.3v12.6z" />
+                                </svg> Faceit
+                            </span>
+                        </div>
+                        <div class="text-muted small mb-3" style="font-size:0.75rem;">Faceit Level Range (1-10)</div>
+                        <div class="dual-slider-container">
+                            <div class="dual-slider-track"></div>
+                            <div class="dual-slider-fill" id="faceit-fill"></div>
+                            <input type="range" name="cs2_faceit_min" id="faceit-min" min="1" max="10"
+                                value="{{ request.GET.cs2_faceit_min|default:1 }}" class="dual-slider-input">
+                            <input type="range" name="cs2_faceit_max" id="faceit-max" min="1" max="10"
+                                value="{{ request.GET.cs2_faceit_max|default:10 }}" class="dual-slider-input">
+                        </div>
+                        <div class="text-muted mt-2" id="faceit-text" style="font-size:0.75rem;">Level 1-10</div>
                     </div>
-                    <div class="range-slider-mock">
-                        <div class="range-slider-track"></div>
-                        <div class="range-thumb left"></div>
-                        <div class="range-thumb right"></div>
+
+                    <!-- Premier Range -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-white fw-bold d-flex align-items-center gap-1" style="font-size:0.85rem;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60a5fa"
+                                    stroke-width="2">
+                                    <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"></polygon>
+                                    <polyline points="12 22 12 12"></polyline>
+                                    <polyline points="22 8.5 12 12 2 8.5"></polyline>
+                                </svg> Premier
+                            </span>
+                        </div>
+                        <div class="text-muted small mb-3" style="font-size:0.75rem;">Premier Rating Range (0-40k)</div>
+                        <div class="dual-slider-container">
+                            <div class="dual-slider-track"></div>
+                            <div class="dual-slider-fill" id="premier-fill"></div>
+                            <input type="range" name="cs2_premier_min" id="premier-min" min="0" max="40000" step="1000"
+                                value="{{ request.GET.cs2_premier_min|default:0 }}" class="dual-slider-input">
+                            <input type="range" name="cs2_premier_max" id="premier-max" min="0" max="40000" step="1000"
+                                value="{{ request.GET.cs2_premier_max|default:40000 }}" class="dual-slider-input">
+                        </div>
+                        <div class="text-muted mt-2" id="premier-text" style="font-size:0.75rem;">Rating 0-40,000</div>
                     </div>
                 </div>
 
+                <div class="game-filter filter-valorant d-none mb-3">
+                <div class="filter-label mb-3 text-muted">DYNAMIC GAME FILTERS</div>
+                <div class="filter-label">VALORANT RANK</div>
+                <select class="filter-select mb-3" name="valorant_rank">
+                    <option value="">Any Rank</option>
+                    {% for v, label in valorant_ranks %}
+                    <option value="{{ v }}" {% if request.GET.valorant_rank == v|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="game-filter filter-dota2 d-none mb-3">
+                <div class="filter-label mb-3 text-muted">DYNAMIC GAME FILTERS</div>
+                <div class="filter-label">DOTA 2 RANK</div>
+                <select class="filter-select mb-3" name="dota2_rank">
+                    <option value="">Any Rank</option>
+                    {% for v, label in dota2_ranks %}
+                    <option value="{{ v }}" {% if request.GET.dota2_rank == v|stringformat:"s" %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
                 <div>
-                    <div class="filter-label">LOOKING FOR</div>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="filter-btn active">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <circle cx="12" cy="12" r="3"></circle>
-                                <line x1="12" y1="2" x2="12" y2="5"></line>
-                                <line x1="12" y1="19" x2="12" y2="22"></line>
-                                <line x1="2" y1="12" x2="5" y2="12"></line>
-                                <line x1="19" y1="12" x2="22" y2="12"></line>
-                            </svg>
-                        </button>
-                        <button type="button" class="filter-btn">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                            </svg>
-                        </button>
-                        <button type="button" class="filter-btn">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                            </svg>
-                        </button>
-                    </div>
+                    <div class="filter-label">LOOKING FOR (ROLE)</div>
+                    <select class="filter-select" name="role" id="filter-role">
+                        <option value="">Any Role</option>
+                    </select>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center bg-dark rounded p-3"
-                    style="background:#020617!important; border:1px solid #1e293b;">
-                    <div class="d-flex align-items-center gap-2">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2">
-                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                            <line x1="12" y1="19" x2="12" y2="23"></line>
-                            <line x1="8" y1="23" x2="16" y2="23"></line>
-                        </svg>
-                        <span class="text-white fw-bold" style="font-size:0.9rem;">Mic Required</span>
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" name="mic" id="mic" class="toggle-input" value="1" onchange="this.form.submit()" {% if request.GET.mic %}checked{% endif %}>
+                <div class="mb-4 mt-2">
+                    <div class="filter-label">NATIONALITY / COUNTRY</div>
+                    <select class="filter-select" name="country">
+                        <option value="">🌎 Anywhere</option>
+                        <option value="UA" {% if request.GET.country == "UA" %}selected{% endif %}>🇺🇦 Ukraine</option>
+                        <option value="PL" {% if request.GET.country == "PL" %}selected{% endif %}>🇵🇱 Poland</option>
+                        <option value="US" {% if request.GET.country == "US" %}selected{% endif %}>🇺🇸 USA</option>
+                        <option value="UK" {% if request.GET.country == "UK" %}selected{% endif %}>🇬🇧 UK</option>
+                        <option value="DE" {% if request.GET.country == "DE" %}selected{% endif %}>🇩🇪 Germany</option>
+                        <option value="FR" {% if request.GET.country == "FR" %}selected{% endif %}>🇫🇷 France</option>
+                        <option value="OTHER" {% if request.GET.country == "OTHER" %}selected{% endif %}>🌐 Other</option>
+                    </select>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center rounded p-3 mb-4"
+                    style="background-color: #020617; border: 1px solid #1e293b;">
+                    <span class="text-white fw-bold" style="font-size: 0.9rem;">Mic Required</span>
+                    <label class="toggle-switch m-0">
+                        <input type="checkbox" name="mic" id="mic" class="toggle-input" value="1" {% if request.GET.mic %}checked{% endif %} />
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
 
-                <div>
-                    <div class="filter-label">REGION</div>
-                    <div class="d-flex gap-2">
-                        <button type="button" class="filter-btn active" style="font-size: 0.75rem;">NA East</button>
-                        <button type="button" class="filter-btn" style="font-size: 0.75rem;">NA West</button>
-                        <button type="button" class="filter-btn" style="font-size: 0.75rem;">EU West</button>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-neon w-100" style="padding: 0.75rem; font-size: 0.9rem;">Apply Filters</button>
+                <button type="submit" class="btn-neon w-100" style="padding: 0.75rem; font-size: 0.9rem;">Apply
+                    Filters</button>
 
             </form>
 
@@ -280,142 +331,8 @@
             </div>
         </div>
 
-        <div class="row g-4">
-            {% for lobby in lobbies %}
-
-            {% cycle 'glow-green' 'glow-purple' 'glow-blue' 'glow-orange' as glow_class silent %}
-            {% cycle '#00f0ff' '#c084fc' '#3b82f6' '#f97316' as game_color silent %}
-            {% cycle 'RADIANT' 'MASTER' 'DIAMOND' 'PLATINUM' as rank_text silent %}
-
-            <div class="col-md-6 col-xl-4">
-                <div class="squad-card {{ glow_class }}">
-
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center gap-2">
-                            <div
-                                style="width:24px; height:24px; display:flex; align-items:center; justify-content:center; border-radius:4px; font-weight:800; font-size:12px; border: 1px solid {{ game_color }}; color: {{ game_color }}; background: rgba(0,240,255,0.05);">
-                                {{ lobby.get_game_display|slice:":1"|upper }}
-                            </div>
-                            <span class="text-white fw-bold" style="font-size:0.95rem;">{{ lobby.get_game_display }}</span>
-                        </div>
-                        <span class="badge"
-                            style="background: rgba(0,255,148,0.1); color: #00ff94; border: 1px solid #00ff94; font-size: 0.65rem;">
-                            COMPETITIVE
-                        </span>
-                    </div>
-
-                    <div class="rank-icon-container">
-                        <svg width="60" height="60" viewBox="0 0 24 24" fill="{{ game_color }}"
-                            opacity="0.8" style="filter: drop-shadow(0 0 10px {{ game_color }});">
-                            <polygon points="12 2 22 12 12 22 2 12"></polygon>
-                        </svg>
-                        <h4 class="mt-3 mb-0 text-white" style="letter-spacing: 0.1em; text-transform: uppercase;">{{ rank_text }}</h4>
-                        <span class="text-muted" style="font-size:0.75rem;">{{ lobby.get_required_rank_display }}</span>
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center mt-auto border-top border-secondary pt-3"
-                        style="border-color: #1e293b!important;">
-                        <div class="d-flex align-items-center gap-2">
-                            <img src="https://ui-avatars.com/api/?name={{ lobby.host.username }}&background=1e293b&color={{ game_color|cut:'#' }}&rounded=true"
-                                width="28" height="28" class="rounded-circle">
-                            <div>
-                                <div class="text-white fw-bold" style="font-size:0.85rem; line-height: 1;">{{ lobby.host.username }}</div>
-                                <div
-                                    style="font-size:0.65rem; color:#00ff94; display:flex; align-items:center; gap:4px; margin-top: 4px;">
-                                    <span style="width:6px; height:6px; background:#00ff94; border-radius:50%;"></span>
-                                    Host
-                                </div>
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center gap-2 text-muted">
-                            {% if lobby.mic_required %}
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                            </svg>
-                            {% endif %}
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="2" y1="12" x2="22" y2="12"></line>
-                                <path
-                                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
-                                </path>
-                            </svg>
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-between align-items-center mt-3 text-muted"
-                        style="font-size:0.75rem;">
-                        <span class="fw-bold text-white">{{ lobby.participants.count }}/{{ lobby.get_slots|length }} Players</span>
-                        <span class="d-flex align-items-center gap-1">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
-                            {{ lobby.created_at|timesince }} ago
-                        </span>
-                    </div>
-
-                    <div class="mt-3">
-                        {% if user.is_authenticated and lobby.id not in my_lobby_ids %}
-                        <form method="post" action="{% url 'lobby_join' lobby.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn-join-squad" style="background:{{ game_color }}; box-shadow: 0 0 15px {{ game_color }};">JOIN SQUAD</button>
-                        </form>
-                        {% else %}
-                        <a href="{% url 'lobby_detail' lobby.id %}"
-                            class="btn btn-view-details d-block text-center text-decoration-none">VIEW DETAILS</a>
-                        {% endif %}
-                    </div>
-
-                </div>
-            </div>
-            {% empty %}
-            <div class="col-md-6 col-xl-4">
-                <div class="squad-card glow-cyan d-flex align-items-center justify-content-center"
-                    style="border: 2px dashed #334155; background: rgba(15,23,42,0.4); text-align: center; padding: 3rem 1rem;">
-                    <div>
-                        <div
-                            style="width: 60px; height: 60px; background: rgba(0,240,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: #00f0ff;">
-                            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="8" x2="12" y2="16"></line>
-                                <line x1="8" y1="12" x2="16" y2="12"></line>
-                            </svg>
-                        </div>
-                        <h5 class="text-white mb-2">No active lobbies</h5>
-                        <p class="text-muted small mb-4">Be the first to start a match!</p>
-                        <a href="{% url 'lobby_create' %}" class="btn-neon px-4" style="font-size:0.75rem;">Create New</a>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-
-            {% if lobbies %}
-            <div class="col-md-6 col-xl-4">
-                <a href="{% url 'lobby_create' %}"
-                    class="squad-card text-decoration-none d-flex align-items-center justify-content-center"
-                    style="border: 2px dashed #334155; background: rgba(15,23,42,0.4); text-align: center; padding: 3rem 1rem;">
-                    <div>
-                        <div
-                            style="width: 50px; height: 50px; background: rgba(255,255,255,0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: #fff;">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <line x1="12" y1="5" x2="12" y2="19"></line>
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                            </svg>
-                        </div>
-                        <h5 class="text-white mb-2">Create New Lobby</h5>
-                        <p class="text-muted" style="font-size: 0.8rem;">Start your own squad and find<br>the perfect teammates.</p>
-                    </div>
-                </a>
-            </div>
-            {% endif %}
-
+        <div class="row g-4" id="lobbies-container">
+            {% include "lobbies/partials/lobby_list.html" %}
         </div>
 
         <div class="d-flex justify-content-center align-items-center gap-2 mt-5">
@@ -481,7 +398,9 @@
                             style="width:50px; height:50px; background: rgba(59,130,246,0.1); border-radius: 12px; display:flex; align-items:center; justify-content:center; color:#3b82f6;">
                             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
-                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                <path
+                                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                                </path>
                                 <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                                 <line x1="12" y1="22.08" x2="12" y2="12"></line>
                             </svg>
@@ -498,4 +417,122 @@
 
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Form Submission Logic ---
+        const filterForm = document.querySelector('.filter-sidebar form');
+        const partiesContainer = document.querySelector('#lobbies-container');
+
+        if (filterForm && partiesContainer) {
+            filterForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const url = new URL(window.location.href);
+                const formData = new FormData(filterForm);
+
+                // Clear previous params except page maybe
+                const oldParams = Array.from(url.searchParams.keys());
+                oldParams.forEach(p => url.searchParams.delete(p));
+
+                for (let [key, value] of formData.entries()) {
+                    if (value) {
+                        url.searchParams.set(key, value);
+                    }
+                }
+
+                fetch(url.toString(), {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        partiesContainer.innerHTML = data.html;
+                        window.history.pushState({}, '', url);
+
+                        const countText = document.querySelector('.text-muted.small');
+                        if (countText && countText.textContent.includes('active lobbies')) {
+                            countText.textContent = `Showing ${data.count} active lobbies matching your profile`;
+                        }
+                    })
+                    .catch(error => console.error('Error fetching lobbies:', error));
+            });
+        }
+
+        // --- Dynamic Filter UI Logic ---
+        const roleDataString = '{{ roles_json|default:"{}"|escapejs }}';
+        const roleData = JSON.parse(roleDataString);
+        const filterGame = document.getElementById('filter-game');
+        const filterRole = document.getElementById('filter-role');
+        const currentRole = '{{ request.GET.role|default:"" }}';
+
+        function setupDualSlider(minId, maxId, fillId, textId, formatFn) {
+            const minInput = document.getElementById(minId);
+            const maxInput = document.getElementById(maxId);
+            const fill = document.getElementById(fillId);
+            const text = document.getElementById(textId);
+            if (!minInput || !maxInput || !fill || !text) return;
+
+            function update() {
+                let minVal = parseInt(minInput.value);
+                let maxVal = parseInt(maxInput.value);
+                if (minVal > maxVal) {
+                    const tmp = minVal;
+                    minVal = maxVal;
+                    maxVal = tmp;
+                }
+
+                const minPos = ((minVal - minInput.min) / (minInput.max - minInput.min)) * 100;
+                const maxPos = ((maxVal - minInput.min) / (minInput.max - minInput.min)) * 100;
+
+                fill.style.left = minPos + '%';
+                fill.style.width = (maxPos - minPos) + '%';
+                text.textContent = formatFn(minVal, maxVal);
+            }
+
+            minInput.addEventListener('input', update);
+            maxInput.addEventListener('input', update);
+            update();
+        }
+
+        setupDualSlider('faceit-min', 'faceit-max', 'faceit-fill', 'faceit-text', (min, max) => `Level ${min}-${max}`);
+        setupDualSlider('premier-min', 'premier-max', 'premier-fill', 'premier-text', (min, max) => `Rating ${(min).toLocaleString()}-${(max).toLocaleString()}`);
+
+        function updateDynamicFilters() {
+            if (!filterGame) return;
+            const game = filterGame.value;
+
+            // 1. Hide all game specific filters
+            document.querySelectorAll('.game-filter').forEach(el => el.classList.add('d-none'));
+
+            // 2. Show specifically selected game filters
+            if (game) {
+                const targetFilter = document.querySelector(`.filter-${game}`);
+                if (targetFilter) targetFilter.classList.remove('d-none');
+            }
+
+            // 3. Update roles dropdown
+            if (filterRole && roleData) {
+                filterRole.innerHTML = '<option value="">Any Role</option>';
+                if (game && roleData[game]) {
+                    roleData[game].forEach(role => {
+                        const opt = document.createElement('option');
+                        opt.value = role[0];
+                        opt.textContent = role[1];
+                        if (currentRole === role[0]) {
+                            opt.selected = true;
+                        }
+                        filterRole.appendChild(opt);
+                    });
+                }
+            }
+        }
+
+        if (filterGame) {
+            filterGame.addEventListener('change', updateDynamicFilters);
+            updateDynamicFilters(); // initialize on load
+        }
+    });
+</script>
 {% endblock %}
