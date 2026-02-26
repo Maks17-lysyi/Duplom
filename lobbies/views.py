@@ -5,7 +5,6 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import LobbyForm
-from .forms import LobbyForm
 from .models import ChatMessage, Lobby, LobbyParticipant
 
 
@@ -116,6 +115,7 @@ def lobby_end(request, lobby_id: int):
         messages.error(request, "Only the host can end this lobby.")
         return redirect("lobby_detail", lobby_id=lobby_id)
 
+    lobby.status = Lobby.Status.ENDED
     lobby.save(update_fields=["status"])
     messages.success(request, "Lobby ended.")
     return redirect("lobby_detail", lobby_id=lobby_id)

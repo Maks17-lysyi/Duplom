@@ -1,192 +1,501 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Party Finder • SquadUp{% endblock %}
 
 {% block content %}
-<div class="row g-4">
-  <div class="col-lg-3">
-    <div class="card squadup-card">
-      <div class="card-body">
-        <h5 class="card-title mb-3">Filters</h5>
+<div class="row align-items-center mb-5 pb-4" style="min-height: 60vh;">
+    <div class="col-lg-6 mb-5 mb-lg-0 pe-lg-5">
 
-        <form method="get" class="vstack gap-3">
-          <div>
-            <label class="form-label text-secondary">Game</label>
-            <select class="form-select squadup-input" name="game">
-              <option value="">All</option>
-              {% for v, label in game_choices %}
-              <!-- TEMPORARY FIX: Removed 'selected' logic to prevent syntax error -->
-              <option value="{{ v }}">{{ label }}</option>
-              {% endfor %}
-            </select>
-          </div>
+        <span class="badge rounded-pill mb-4 px-3 py-2"
+            style="background: rgba(192, 132, 252, 0.1); color: #c084fc; border: 1px solid rgba(192, 132, 252, 0.3);">
+            <span
+                style="display:inline-block; width:8px; height:8px; background:#c084fc; border-radius:50%; margin-right:8px; box-shadow: 0 0 10px #c084fc;"></span>
+            LIVE MATCHMAKING
+        </span>
 
-          <div>
-            <label class="form-label text-secondary">Required rank</label>
-            <select class="form-select squadup-input" name="rank">
-              <option value="">Any</option>
-              {% for v, label in rank_choices %}
-              <option value="{{ v }}">{{ label }}</option>
-              {% endfor %}
-            </select>
-          </div>
+        <h1 class="mb-4" style="font-size: 4.5rem; font-weight: 900; line-height: 1;">
+            <span class="text-white">FIND YOUR</span><br>
+            <span
+                style="background: linear-gradient(90deg, #00ff94, #00f0ff); -webkit-background-clip: text; color: transparent; text-shadow: 0 0 30px rgba(0,255,148,0.4);">ULTIMATE</span><br>
+            <span
+                style="background: linear-gradient(90deg, #c084fc, #00f0ff); -webkit-background-clip: text; color: transparent; text-shadow: 0 0 30px rgba(192,132,252,0.4);">SQUAD</span><br>
+            <span class="text-white">TODAY</span>
+        </h1>
 
-          <div>
-            <label class="form-label text-secondary">Role</label>
-            <select class="form-select squadup-input" name="role">
-              <option value="">Any</option>
-              {% for v, label in role_choices %}
-              <option value="{{ v }}">{{ label }}</option>
-              {% endfor %}
-            </select>
-          </div>
+        <p class="text-muted mb-5" style="font-size: 1.15rem; max-width: 500px; line-height: 1.6;">
+            Connect with elite players in a futuristic ecosystem. SquadUp uses advanced bio-algorithms to match you with
+            teammates who complement your playstyle perfectly.
+        </p>
 
-          <div class="form-check">
-            <input class="form-check-input squadup-check" type="checkbox" value="1" id="mic" name="mic">
-            <label class="form-check-label" for="mic">Has mic</label>
-          </div>
+        <div class="d-flex flex-wrap gap-3 align-items-center mb-5">
+            <a href="{% url 'lobby_create' %}" class="btn-neon">
+                CREATE LOBBY
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <path d="M12 5v14m-7-7h14"></path>
+                </svg>
+            </a>
+            <a href="#parties" class="btn-outline-glow">
+                BROWSE PARTIES
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14m-7-7l7 7-7 7"></path>
+                </svg>
+            </a>
+        </div>
 
-          <div class="d-grid gap-2">
-            <button class="btn btn-neon" type="submit">Apply</button>
-            <a class="btn btn-outline-purple" href="{% url 'home' %}">Reset</a>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-lg-9">
-    <div class="d-flex align-items-center justify-content-between mb-3">
-      <div>
-        <h2 class="mb-0">Party Finder</h2>
-        <div class="text-secondary small">Browse active parties and join if you fit.</div>
-      </div>
-      <a class="btn btn-neon" href="{% url 'lobby_create' %}">+ Create Party</a>
+        <div class="d-flex gap-4">
+            <div class="d-flex align-items-center gap-2 text-muted font-monospace" style="font-size: 0.85rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 00-3-3.87m-4-12a4 4 0 010 7.75"></path>
+                </svg>
+                12,405 Online
+            </div>
+            <div class="d-flex align-items-center gap-2 text-muted font-monospace" style="font-size: 0.85rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+                845 Active Lobbies
+            </div>
+        </div>
     </div>
 
-    <div class="lobby-list">
-      {% for lobby in lobbies %}
-      <div class="faceit-team-card">
-
-        <!-- Header (Skill Level) -->
+    <div class="col-lg-6 position-relative d-none d-lg-block" style="height: 500px;">
         <div
-          style="position: absolute; top: 0; right: 0; padding: 0.5rem 1rem; background: #0f172a; border-bottom-left-radius: 8px; border-left: 1px solid #1e293b; border-bottom: 1px solid #1e293b;">
-          <span class="text-secondary small fw-bold">AVG. SKILL LEVEL</span>
-          <span class="ms-2 text-white fw-bold">8</span>
+            style="position: absolute; right: 0; top: 0; bottom: 0; width: 85%; border-radius: 20px; overflow: hidden; border: 1px solid var(--border-glass);">
+            <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop"
+                style="width: 100%; height: 100%; object-fit: cover; opacity: 0.6;" alt="Gamer Background">
+            <div
+                style="position: absolute; inset: 0; background: linear-gradient(90deg, #030712 0%, transparent 100%);">
+            </div>
         </div>
 
-        <!-- 1. SLOTS ROW (The Main Visual) -->
-        <div class="faceit-slots-area" style="margin-top: 1.5rem;">
-          {% with total_filled=lobby.participants.count %}
-          {% for slot_user in lobby.get_slots %}
-
-          {% if slot_user %}
-          <!-- FILTERED: Filled Slot -->
-          <div class="faceit-slot-card filled" title="{{ slot_user.username }}">
-            {% if slot_user == lobby.host %}
-            <div class="faceit-slot-avatar host-avatar">
-              {{ slot_user.username|slice:":1"|upper }}
-              <span
-                style="position:absolute; top:-12px; right:-8px; font-size:1.2rem; filter: drop-shadow(0 0 5px cyan);">👑</span>
+        <div class="squadup-card position-absolute"
+            style="top: 10%; right: 10%; width: 280px; padding: 1rem; border-color: #00f0ff; box-shadow: 0 10px 30px rgba(0,240,255,0.15); animation: float 6s ease-in-out infinite;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div
+                    style="width:24px; height:24px; background:#ef4444; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:12px; font-weight:700;">
+                    V</div>
+                <span class="text-white fw-bold">Valorant</span>
             </div>
-            {% else %}
-            <div class="faceit-slot-avatar">
-              {{ slot_user.username|slice:":1"|upper }}
+            <div class="text-muted small mb-3">Looking for 2 players</div>
+            <div class="d-flex gap-1">
+                <img src="https://ui-avatars.com/api/?name=Jett&background=0f172a&color=fff&rounded=true" width="28"
+                    height="28" class="rounded-circle border border-dark">
+                <img src="https://ui-avatars.com/api/?name=Omen&background=0f172a&color=fff&rounded=true" width="28"
+                    height="28" class="rounded-circle border border-dark" style="margin-left:-10px;">
+                <div
+                    style="width:28px; height:28px; background:#1e293b; color:#94a3b8; border-radius:50%; font-size:10px; display:flex; align-items:center; justify-content:center; margin-left:-10px; border:1px solid #000;">
+                    +2</div>
             </div>
-            {% endif %}
-
-            <div class="faceit-slot-name">{{ slot_user.username }}</div>
-
-            <!-- Role/Stats Badge -->
-            <div class="faceit-slot-stats"
-              style="color: #94a3b8; font-size: 0.7rem; margin-top: auto; margin-bottom: 0.5rem;">
-              <span class="badge bg-dark border border-secondary text-secondary">1500 ELO</span>
-            </div>
-          </div>
-
-          {% else %}
-          <!-- EMPTY SLOT LOGIC -->
-          <!-- The first empty slot (index == total_filled) is the JOIN slot -->
-          {% if forloop.counter0 == total_filled and user.is_authenticated and lobby.status != 'ended' and lobby.id not
-          in my_lobby_ids %}
-          <!-- ACTIVE JOIN SLOT -->
-          <div class="faceit-slot-card active-join"
-            style="border-color: #00f0ff; background: rgba(0, 240, 255, 0.05); cursor: pointer;"
-            onclick="document.getElementById('join-form-{{ lobby.id }}').submit();">
-            <form method="post" action="{% url 'lobby_join' lobby.id %}" id="join-form-{{ lobby.id }}"
-              style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-              {% csrf_token %}
-              <div style="font-size: 3rem; line-height: 1; color: #00f0ff; margin-bottom: 0.5rem;">+</div>
-              <div style="color: white; font-weight: 700; font-size: 0.8rem; text-transform: uppercase;">Join</div>
-            </form>
-          </div>
-
-          {% else %}
-          <!-- INACTIVE/LOCKED SLOT -->
-          <div class="faceit-slot-card empty" style="opacity: 0.3; border-style: solid; border-color: #334155;">
-            <div style="width: 40px; height: 40px; border-radius: 50%; border: 2px dashed #475569;"></div>
-          </div>
-          {% endif %}
-
-          {% endif %}
-          {% endfor %}
-          {% endwith %}
         </div>
 
-        <!-- 2. FOOTER (Tags & Badges) -->
-        <div class="faceit-card-footer">
-          <div class="faceit-footer-left">
-            <div class="faceit-badges-row">
-              <!-- Game Tag -->
-              <div class="faceit-tag">
-                <span style="color:#00f0ff; margin-right:4px;">🎮</span> {{ lobby.get_game_display }}
-              </div>
-              <!-- Mode Tag -->
-              <div class="faceit-tag">
-                <span style="color:#00f0ff; margin-right:4px;">⚔️</span> 5v5 Match
-              </div>
-              <!-- Region Tag -->
-              <div class="faceit-tag">
-                <span style="color:#00f0ff; margin-right:4px;">🌍</span> EU
-              </div>
-              <!-- Rank Tag -->
-              <div class="faceit-tag">
-                <span style="color:#00f0ff; margin-right:4px;">🏆</span> {{ lobby.get_required_rank_display }}
-              </div>
-              {% if lobby.mic_required %}
-              <div class="faceit-tag">
-                <span style="color:#00f0ff; margin-right:4px;">🎙️</span> Voice
-              </div>
-              {% endif %}
+        <div class="squadup-card position-absolute"
+            style="bottom: 10%; left: 0; width: 300px; padding: 1.25rem; border-color: #c084fc; box-shadow: 0 10px 30px rgba(192,132,252,0.15); animation: float 8s ease-in-out infinite 1s;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div
+                    style="width:24px; height:24px; background:#c084fc; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:12px; font-weight:700;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L2 22h20L12 2z" />
+                    </svg></div>
+                <span class="text-white fw-bold">Apex Legends</span>
             </div>
-          </div>
-
-          <div class="faceit-footer-right">
-            {% if user.is_authenticated %}
-            {% if lobby.id in my_lobby_ids %}
-            <a href="{% url 'lobby_detail' lobby.id %}" class="btn btn-sm btn-outline-info">OPEN LOBBY</a>
-            {% endif %}
-            {% else %}
-            <a href="{% url 'login' %}" class="btn btn-sm btn-outline-secondary">LOGIN</a>
-            {% endif %}
-          </div>
-        </div>
-
-      </div>
-      {% empty %}
-      <div class="col-12">
-        <div class="card squadup-card">
-          <div class="card-body">
-            <div class="text-center py-5">
-              <h4 class="text-white">No active lobbies</h4>
-              <div class="text-secondary mb-3">Be the first to start a match!</div>
-              <a class="btn btn-neon" href="{% url 'lobby_create' %}">Create Lobby</a>
+            <div class="text-muted small mb-2">Ranked Grind - Gold+</div>
+            <div class="progress-bar-custom mt-2 mb-1" style="height: 4px; background: #334155; border-radius: 2px;">
+                <div class="progress-fill"
+                    style="height: 100%; width: 66%; background: #c084fc; box-shadow: 0 0 10px #c084fc;"></div>
             </div>
-          </div>
         </div>
-      </div>
-      {% endfor %}
     </div>
-  </div>
+</div>
+
+<style>
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-15px); }
+        100% { transform: translateY(0px); }
+    }
+</style>
+
+<div class="row g-4" id="parties">
+
+    <div class="col-lg-3">
+        <div class="filter-sidebar position-sticky" style="top: 2rem;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="text-white mb-0 d-flex align-items-center gap-2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2">
+                        <line x1="4" y1="21" x2="4" y2="14"></line>
+                        <line x1="4" y1="10" x2="4" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12" y2="3"></line>
+                        <line x1="20" y1="21" x2="20" y2="16"></line>
+                        <line x1="20" y1="12" x2="20" y2="3"></line>
+                        <line x1="1" y1="14" x2="7" y2="14"></line>
+                        <line x1="9" y1="8" x2="15" y2="8"></line>
+                        <line x1="17" y1="16" x2="23" y2="16"></line>
+                    </svg>
+                    Filters
+                </h4>
+                <a href="{% url 'home' %}" class="text-muted small text-decoration-none">Reset</a>
+            </div>
+
+            <form method="get" class="vstack gap-4">
+                <div>
+                    <div class="filter-label">GAME</div>
+                    <select class="filter-select" name="game" onchange="this.form.submit()">
+                        <option value="">All Games</option>
+                        {% for v, label in game_choices %}
+                        <option value="{{ v }}" {% if request.GET.game == v|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <div class="d-flex justify-content-between">
+                        <div class="filter-label">RANK RANGE</div>
+                        <span class="text-info small" style="color:#00f0ff!important;">Gold - Diamond</span>
+                    </div>
+                    <div class="range-slider-mock">
+                        <div class="range-slider-track"></div>
+                        <div class="range-thumb left"></div>
+                        <div class="range-thumb right"></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="filter-label">LOOKING FOR</div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="filter-btn active">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <line x1="12" y1="2" x2="12" y2="5"></line>
+                                <line x1="12" y1="19" x2="12" y2="22"></line>
+                                <line x1="2" y1="12" x2="5" y2="12"></line>
+                                <line x1="19" y1="12" x2="22" y2="12"></line>
+                            </svg>
+                        </button>
+                        <button type="button" class="filter-btn">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                        </button>
+                        <button type="button" class="filter-btn">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center bg-dark rounded p-3"
+                    style="background:#020617!important; border:1px solid #1e293b;">
+                    <div class="d-flex align-items-center gap-2">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                        </svg>
+                        <span class="text-white fw-bold" style="font-size:0.9rem;">Mic Required</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="mic" id="mic" class="toggle-input" value="1" onchange="this.form.submit()" {% if request.GET.mic %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div>
+                    <div class="filter-label">REGION</div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="filter-btn active" style="font-size: 0.75rem;">NA East</button>
+                        <button type="button" class="filter-btn" style="font-size: 0.75rem;">NA West</button>
+                        <button type="button" class="filter-btn" style="font-size: 0.75rem;">EU West</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-neon w-100" style="padding: 0.75rem; font-size: 0.9rem;">Apply Filters</button>
+
+            </form>
+
+            <div class="stats-card mt-4">
+                <div class="filter-label mb-2 pb-2 border-bottom border-secondary"
+                    style="border-color:#1e293b!important;">YOUR STATS</div>
+                <div class="d-flex align-items-center gap-3 mt-3">
+                    <div
+                        style="width:40px; height:40px; background:rgba(192,132,252,0.1); border:1px solid #c084fc; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="2">
+                            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                            <path d="M4 22h16"></path>
+                            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+                            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+                            <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-white fw-bold" style="font-size:1.1rem;">1,240</div>
+                        <div class="text-muted" style="font-size:0.75rem;">Reputation Points</div>
+                    </div>
+                </div>
+                <div class="progress-bar-custom mt-3">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="text-end text-muted mt-1" style="font-size:0.7rem; color:#c084fc!important;">Level 24</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h2 class="mb-0 text-white fw-bold d-flex align-items-center gap-2">Active Squads</h2>
+                <div class="text-muted small">Showing {{ lobbies|length }} active lobbies matching your profile</div>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-glow"
+                    style="padding: 0.4rem 0.6rem; border-color: #334155; border-radius: 8px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg>
+                </button>
+                <button class="btn btn-sm btn-outline-glow"
+                    style="padding: 0.4rem 0.6rem; border-color: #334155; border-radius: 8px; color: #64748b!important;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            {% for lobby in lobbies %}
+
+            {% cycle 'glow-green' 'glow-purple' 'glow-blue' 'glow-orange' as glow_class silent %}
+            {% cycle '#00f0ff' '#c084fc' '#3b82f6' '#f97316' as game_color silent %}
+            {% cycle 'RADIANT' 'MASTER' 'DIAMOND' 'PLATINUM' as rank_text silent %}
+
+            <div class="col-md-6 col-xl-4">
+                <div class="squad-card {{ glow_class }}">
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <div
+                                style="width:24px; height:24px; display:flex; align-items:center; justify-content:center; border-radius:4px; font-weight:800; font-size:12px; border: 1px solid {{ game_color }}; color: {{ game_color }}; background: rgba(0,240,255,0.05);">
+                                {{ lobby.get_game_display|slice:":1"|upper }}
+                            </div>
+                            <span class="text-white fw-bold" style="font-size:0.95rem;">{{ lobby.get_game_display }}</span>
+                        </div>
+                        <span class="badge"
+                            style="background: rgba(0,255,148,0.1); color: #00ff94; border: 1px solid #00ff94; font-size: 0.65rem;">
+                            COMPETITIVE
+                        </span>
+                    </div>
+
+                    <div class="rank-icon-container">
+                        <svg width="60" height="60" viewBox="0 0 24 24" fill="{{ game_color }}"
+                            opacity="0.8" style="filter: drop-shadow(0 0 10px {{ game_color }});">
+                            <polygon points="12 2 22 12 12 22 2 12"></polygon>
+                        </svg>
+                        <h4 class="mt-3 mb-0 text-white" style="letter-spacing: 0.1em; text-transform: uppercase;">{{ rank_text }}</h4>
+                        <span class="text-muted" style="font-size:0.75rem;">{{ lobby.get_required_rank_display }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-auto border-top border-secondary pt-3"
+                        style="border-color: #1e293b!important;">
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="https://ui-avatars.com/api/?name={{ lobby.host.username }}&background=1e293b&color={{ game_color|cut:'#' }}&rounded=true"
+                                width="28" height="28" class="rounded-circle">
+                            <div>
+                                <div class="text-white fw-bold" style="font-size:0.85rem; line-height: 1;">{{ lobby.host.username }}</div>
+                                <div
+                                    style="font-size:0.65rem; color:#00ff94; display:flex; align-items:center; gap:4px; margin-top: 4px;">
+                                    <span style="width:6px; height:6px; background:#00ff94; border-radius:50%;"></span>
+                                    Host
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 text-muted">
+                            {% if lobby.mic_required %}
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            </svg>
+                            {% endif %}
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path
+                                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                </path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3 text-muted"
+                        style="font-size:0.75rem;">
+                        <span class="fw-bold text-white">{{ lobby.participants.count }}/{{ lobby.get_slots|length }} Players</span>
+                        <span class="d-flex align-items-center gap-1">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            {{ lobby.created_at|timesince }} ago
+                        </span>
+                    </div>
+
+                    <div class="mt-3">
+                        {% if user.is_authenticated and lobby.id not in my_lobby_ids %}
+                        <form method="post" action="{% url 'lobby_join' lobby.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-join-squad" style="background:{{ game_color }}; box-shadow: 0 0 15px {{ game_color }};">JOIN SQUAD</button>
+                        </form>
+                        {% else %}
+                        <a href="{% url 'lobby_detail' lobby.id %}"
+                            class="btn btn-view-details d-block text-center text-decoration-none">VIEW DETAILS</a>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-md-6 col-xl-4">
+                <div class="squad-card glow-cyan d-flex align-items-center justify-content-center"
+                    style="border: 2px dashed #334155; background: rgba(15,23,42,0.4); text-align: center; padding: 3rem 1rem;">
+                    <div>
+                        <div
+                            style="width: 60px; height: 60px; background: rgba(0,240,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; color: #00f0ff;">
+                            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="16"></line>
+                                <line x1="8" y1="12" x2="16" y2="12"></line>
+                            </svg>
+                        </div>
+                        <h5 class="text-white mb-2">No active lobbies</h5>
+                        <p class="text-muted small mb-4">Be the first to start a match!</p>
+                        <a href="{% url 'lobby_create' %}" class="btn-neon px-4" style="font-size:0.75rem;">Create New</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if lobbies %}
+            <div class="col-md-6 col-xl-4">
+                <a href="{% url 'lobby_create' %}"
+                    class="squad-card text-decoration-none d-flex align-items-center justify-content-center"
+                    style="border: 2px dashed #334155; background: rgba(15,23,42,0.4); text-align: center; padding: 3rem 1rem;">
+                    <div>
+                        <div
+                            style="width: 50px; height: 50px; background: rgba(255,255,255,0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: #fff;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </div>
+                        <h5 class="text-white mb-2">Create New Lobby</h5>
+                        <p class="text-muted" style="font-size: 0.8rem;">Start your own squad and find<br>the perfect teammates.</p>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <div class="d-flex justify-content-center align-items-center gap-2 mt-5">
+            <a href="#" class="pagination-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg></a>
+            <a href="#" class="pagination-item active">1</a>
+            <a href="#" class="pagination-item">2</a>
+            <a href="#" class="pagination-item">3</a>
+            <a href="#" class="pagination-item" style="pointer-events:none;">...</a>
+            <a href="#" class="pagination-item">12</a>
+            <a href="#" class="pagination-item"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg></a>
+        </div>
+
+        <div class="mt-5 pt-4">
+            <h3 class="tournament-section-title mb-4">UPCOMING <span>TOURNAMENTS</span></h3>
+
+            <div class="d-flex flex-column gap-3">
+                <div class="tournament-card glow-green">
+                    <div class="d-flex align-items-center gap-4">
+                        <div
+                            style="width:50px; height:50px; background: rgba(0,240,255,0.1); border-radius: 12px; display:flex; align-items:center; justify-content:center; color:#00f0ff;">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                                <polyline points="2 17 12 22 22 17"></polyline>
+                                <polyline points="2 12 12 17 22 12"></polyline>
+                            </svg>
+                        </div>
+                        <div>
+                            <h5 class="text-white mb-1 fw-bold">Valorant Summer Clash</h5>
+                            <div class="text-muted small">Prize Pool: $10,000 | Date: July 15th | Slots: Open</div>
+                        </div>
+                    </div>
+                    <a href="#" class="btn-neon py-2 px-3 m-0" style="font-size:0.75rem;">Register Now</a>
+                </div>
+
+                <div class="tournament-card glow-purple">
+                    <div class="d-flex align-items-center gap-4">
+                        <div
+                            style="width:50px; height:50px; background: rgba(192,132,252,0.1); border-radius: 12px; display:flex; align-items:center; justify-content:center; color:#c084fc;">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <polygon points="14 2 18 6 7 17 3 17 3 13 14 2z"></polygon>
+                                <line x1="3" y1="22" x2="21" y2="22"></line>
+                            </svg>
+                        </div>
+                        <div>
+                            <h5 class="text-white mb-1 fw-bold">Apex Predators Weekly</h5>
+                            <div class="text-muted small">Prize: 2x RP Boost + Skins | Every Saturday</div>
+                        </div>
+                    </div>
+                    <a href="#" class="tournament-btn py-2 px-3 m-0" style="font-size:0.75rem;">View Details</a>
+                </div>
+
+                <div class="tournament-card glow-blue">
+                    <div class="d-flex align-items-center gap-4">
+                        <div
+                            style="width:50px; height:50px; background: rgba(59,130,246,0.1); border-radius: 12px; display:flex; align-items:center; justify-content:center; color:#3b82f6;">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                            </svg>
+                        </div>
+                        <div>
+                            <h5 class="text-white mb-1 fw-bold">LoL Community Cup</h5>
+                            <div class="text-muted small">For Gold-Platinum Ranks | Glory & Badges</div>
+                        </div>
+                    </div>
+                    <a href="#" class="tournament-btn py-2 px-3 m-0" style="font-size:0.75rem;">Sign Up</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
 {% endblock %}
