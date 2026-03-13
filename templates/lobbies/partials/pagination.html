@@ -1,0 +1,45 @@
+{% if page_obj.has_other_pages %}
+<div class="d-flex justify-content-center align-items-center gap-2 mt-5" id="pagination-controls">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}" class="pagination-item"
+        data-page="{{ page_obj.previous_page_number }}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+    </a>
+    {% else %}
+    <a href="#" class="pagination-item" style="pointer-events:none; opacity: 0.5;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+    </a>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+    {% if page_obj.number == num %}
+    <a href="#" class="pagination-item active" data-page="{{ num }}">{{ num }}</a>
+    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <a href="?page={{ num }}"
+        class="pagination-item" data-page="{{ num }}">{{ num }}</a>
+        {% elif num == 1 or num == page_obj.paginator.num_pages %}
+        <a href="?page={{ num }}" class="pagination-item" data-page="{{ num }}">{{ num }}</a>
+        {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+        <a href="#" class="pagination-item" style="pointer-events:none;">...</a>
+        {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="pagination-item"
+            data-page="{{ page_obj.next_page_number }}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </a>
+        {% else %}
+        <a href="#" class="pagination-item" style="pointer-events:none; opacity: 0.5;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </a>
+        {% endif %}
+</div>
+{% endif %}

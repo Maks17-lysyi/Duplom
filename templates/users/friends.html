@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Friends | SquadUp{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="margin-top: 60px;">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="text-white fw-bold m-0" style="font-size: 2.5rem; letter-spacing: -1px;">Friends Hub</h1>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <ul class="nav nav-tabs custom-battlefy-tabs mb-4" id="friendsTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="my-friends-tab" data-bs-toggle="tab" data-bs-target="#my-friends" type="button" role="tab">MY FRIENDS</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="search-tab" data-bs-toggle="tab" data-bs-target="#search" type="button" role="tab">FIND FRIENDS</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="friendsTabsContent">
+                
+                <div class="tab-pane fade show active" id="my-friends" role="tabpanel">
+                    <div class="row g-3">
+                        {% for friend_profile in friends %}
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-slate);">
+                                <div class="d-flex align-items-center gap-3">
+                                    <img src="https://ui-avatars.com/api/?name={{ friend_profile.user.username }}&background=1e293b&color=00f0ff&rounded=true" alt="Avatar" style="width: 45px; height: 45px;">
+                                    <div>
+                                        <div class="text-white fw-bold">{{ friend_profile.user.username }}</div>
+                                        <div class="text-muted small">Reputation: {{ friend_profile.reputation_score }}</div>
+                                    </div>
+                                </div>
+                                <form action="{% url 'remove_friend' friend_profile.user.id %}" method="POST" class="m-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Видалити з друзів?')">Remove</button>
+                                </form>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-5">
+                            <div class="text-muted mb-3">You don't have any friends yet.</div>
+                            <button class="btn btn-neon btn-sm" onclick="document.getElementById('search-tab').click();" style="background: #00ff94; color: #000; border-radius: 50px; padding: 0.5rem 1.5rem; font-weight: bold;">Find Friends</button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="search" role="tabpanel">
+                    <form method="GET" action="{% url 'friends' %}" class="mb-4">
+                        <div class="d-flex gap-2">
+                            <input type="text" name="q" value="{{ search_query }}" class="form-control bg-dark text-white border-secondary" placeholder="Enter username..." style="height: 50px;">
+                            <button type="submit" class="btn fw-bold px-4" style="background: var(--success-glow, #00ff94); color: #000;">Search</button>
+                        </div>
+                    </form>
+
+                    {% if search_query %}
+                        <h5 class="text-white mb-3">Search Results for "{{ search_query }}"</h5>
+                        <div class="row g-3">
+                            {% for u in search_results %}
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-slate);">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img src="https://ui-avatars.com/api/?name={{ u.username }}&background=1e293b&color=00f0ff&rounded=true" alt="Avatar" style="width: 45px; height: 45px;">
+                                        <div class="text-white fw-bold">{{ u.username }}</div>
+                                    </div>
+                                    <form action="{% url 'send_friend_request' u.id %}" method="POST" class="m-0">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm" style="background: rgba(0, 255, 148, 0.1); color: #00ff94; border: 1px solid #00ff94;">Add Friend</button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="col-12 text-muted">No users found.</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="p-4 rounded-3" style="background: #0f172a; border: 1px solid var(--border-slate);">
+                <h6 class="text-white fw-bold mb-4 text-uppercase" style="font-size: 0.85rem; letter-spacing: 1px;">
+                    Pending Requests <span class="badge bg-danger ms-2 rounded-pill">{{ incoming_requests.count }}</span>
+                </h6>
+                
+                <div class="d-flex flex-column gap-3">
+                    {% for req in incoming_requests %}
+                    <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <img src="https://ui-avatars.com/api/?name={{ req.from_user.username }}&background=1e293b&color=00f0ff&rounded=true" alt="Avatar" style="width: 40px; height: 40px;">
+                            <div class="text-white fw-bold">{{ req.from_user.username }}</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <form action="{% url 'accept_friend_request' req.id %}" method="POST" class="flex-grow-1 m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: var(--success-glow, #00ff94); color: #000;">Accept</button>
+                            </form>
+                            <form action="{% url 'reject_friend_request' req.id %}" method="POST" class="flex-grow-1 m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.3);">Decline</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-muted small text-center py-3">No pending friend requests.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .custom-battlefy-tabs { border-bottom: 2px solid var(--border-slate); gap: 1rem; }
+    .custom-battlefy-tabs .nav-link { color: #94a3b8; background: transparent; border: none; padding: 0.5rem 0; font-weight: 700; font-size: 0.9rem; letter-spacing: 1px; position: relative; }
+    .custom-battlefy-tabs .nav-link:hover { color: #fff; }
+    .custom-battlefy-tabs .nav-link.active { color: #fff; background: transparent; border: none; }
+    .custom-battlefy-tabs .nav-link.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: var(--success-glow, #00ff94); box-shadow: 0 0 10px rgba(0, 255, 148, 0.5); }
+</style>
+{% endblock %}

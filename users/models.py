@@ -4,13 +4,10 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+# Якщо твоя модель Game лежить у додатку lobbies, цей рядок імпортувати не обов'язково, 
+# бо ми використаємо строкову вказівку 'lobbies.Game'
 
 class GamerProfile(models.Model):
-    class MainGame(models.TextChoices):
-        CS2 = "cs2", "Counter-Strike 2"
-        DOTA2 = "dota2", "Dota 2"
-        VALORANT = "valorant", "Valorant"
-
     class Role(models.TextChoices):
         # CS2-ish
         ENTRY = "entry", "Entry"
@@ -31,10 +28,11 @@ class GamerProfile(models.Model):
         POS4 = "pos4", "Dota Pos 4 (Soft Support)"
         POS5 = "pos5", "Dota Pos 5 (Hard Support)"
 
+    # ОНОВЛЕНО: Тепер використовуємо просто текстові slug ігор, бо класу MainGame більше немає
     ROLE_VALUES_BY_GAME = {
-        MainGame.CS2: {"entry", "support", "igl", "awp", "lurk", "flex"},
-        MainGame.VALORANT: {"duelist", "initiator", "controller", "sentinel", "flex"},
-        MainGame.DOTA2: {"pos1", "pos2", "pos3", "pos4", "pos5"},
+        "cs2": {"entry", "support", "igl", "awp", "lurk", "flex"},
+        "valorant": {"duelist", "initiator", "controller", "sentinel", "flex"},
+        "dota2": {"pos1", "pos2", "pos3", "pos4", "pos5"},
     }
 
     class ValorantRank(models.TextChoices):
@@ -62,13 +60,18 @@ class GamerProfile(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="gamer_profile"
     )
 
+    friends = models.ManyToManyField("self", blank=True, symmetrical=True)
+
     steam_id = models.CharField(max_length=64, blank=True)
     discord_id = models.CharField(max_length=64, blank=True)
     bio = models.TextField(blank=True)
     reputation_score = models.IntegerField(default=0)
-    main_game = models.CharField(
-        max_length=16, choices=MainGame.choices, default=MainGame.CS2
+    
+    # ❗ ГОЛОВНА ЗМІНА: Тепер це зв'язок з моделлю Game з додатка lobbies
+    main_game = models.ForeignKey(
+        'lobbies.Game', on_delete=models.SET_NULL, null=True, blank=True, related_name='gamers'
     )
+    
     role = models.CharField(max_length=16, choices=Role.choices, blank=True)
     rank = models.CharField(max_length=64, blank=True) # Kept for legacy if needed
 
@@ -89,6 +92,37 @@ class GamerProfile(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user.username} profile"
+    
+    # ❗ ОНОВЛЕНО: Тепер бере slug з пов'язаної моделі Game
+    @property
+    def display_rank(self) -> str:
+        """Розумний вивід рангу залежно від вибраної гри"""
+        if not self.main_game:
+            return "Unranked"
+
+        game_slug = self.main_game.slug.lower()
+
+        if game_slug == 'cs2':
+            if self.cs2_faceit_lvl and self.cs2_premier_rating:
+                return f"Faceit Lvl {self.cs2_faceit_lvl} | {self.cs2_premier_rating} ELO"
+            elif self.cs2_faceit_lvl:
+                return f"Faceit Lvl {self.cs2_faceit_lvl}"
+            elif self.cs2_premier_rating:
+                return f"Premier {self.cs2_premier_rating}"
+            return "Unranked"
+            
+        elif game_slug == 'valorant':
+            if self.valorant_rank:
+                return self.get_valorant_rank_display()
+            return "Unranked"
+            
+        elif game_slug == 'dota2':
+            if self.dota2_rank:
+                return self.get_dota2_rank_display()
+            return "Unranked"
+            
+        # Якщо гра якась інша, виводимо стандартне поле
+        return self.rank if self.rank else "Unranked"
 
     @property
     def reputation_badge(self) -> str:
@@ -107,7 +141,54 @@ class GamerProfile(models.Model):
         return [(v, label) for (v, label) in cls.Role.choices if v in allowed]
 
 
+# Запити в друзі
+class FriendRequest(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Очікує'
+        ACCEPTED = 'accepted', 'Прийнято'
+        REJECTED = 'rejected', 'Відхилено'
+
+    from_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name='sent_friend_requests', on_delete=models.CASCADE
+    )
+    to_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name='received_friend_requests', on_delete=models.CASCADE
+    )
+    
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('from_user', 'to_user')
+        ordering = ['-created_at']
+        verbose_name = "Запит у друзі"
+        verbose_name_plural = "Запити у друзі"
+
+    def __str__(self):
+        return f"{self.from_user.username} -> {self.to_user.username} ({self.get_status_display()})"
+
+
 @receiver(post_save, sender=get_user_model())
 def create_gamer_profile(sender, instance, created, **kwargs):
     if created:
         GamerProfile.objects.create(user=instance)
+
+class Notification(models.Model):
+    class NotificationType(models.TextChoices):
+        FRIEND_REQUEST = 'friend_request', 'Запит у друзі'
+        LOBBY_INVITE = 'lobby_invite', 'Запрошення в лобі'
+        SYSTEM = 'system', 'Системне повідомлення'
+
+    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='sent_notifications')
+    notification_type = models.CharField(max_length=20, choices=NotificationType.choices, default=NotificationType.SYSTEM)
+    lobby_id = models.IntegerField(null=True, blank=True) 
+    message = models.CharField(max_length=255)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"To {self.recipient.username}: {self.message}"

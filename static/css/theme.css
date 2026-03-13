@@ -1,5 +1,4 @@
-/* 
-  ✨ SquadUp Premium Theme - Cyberpunk/Futuristic
+/* ✨ SquadUp Premium Theme - Cyberpunk/Futuristic
 */
 
 :root {
@@ -929,4 +928,90 @@ a:hover {
   width: 32px;
   height: 32px;
   border-radius: 4px;
+}
+
+/* =========================================
+   Auth / Login Form Overrides
+   ========================================= */
+
+.squadup-card {
+  background: var(--bg-card-solid);
+  border: 1px solid var(--border-slate);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  color: var(--text-main);
+  overflow: hidden;
+}
+
+.squadup-card .card-body {
+  padding: 2.5rem;
+}
+
+.btn-social {
+  background: var(--bg-darker);
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-slate);
+  border-radius: 8px;
+  padding: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+}
+
+.btn-social:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-slate-light);
+  transform: translateY(-2px);
+}
+
+.squadup-divider {
+  position: relative;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.squadup-divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border-slate);
+  z-index: 1;
+}
+
+.squadup-divider span {
+  background: var(--bg-card-solid);
+  color: var(--text-muted);
+  padding: 0 15px;
+  position: relative;
+  z-index: 2;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.squadup-input {
+  background: var(--bg-darker) !important;
+  border: 1px solid var(--border-slate) !important;
+  color: var(--text-main) !important;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.squadup-input:focus {
+  outline: none;
+  background: var(--bg-app) !important;
+  border-color: var(--primary-glow) !important;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
 }

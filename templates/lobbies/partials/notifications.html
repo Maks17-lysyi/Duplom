@@ -1,0 +1,189 @@
+<a class="nav-link text-white position-relative d-flex align-items-center justify-content-center" 
+   id="bell-icon-trigger" href="javascript:void(0);" 
+   style="width: 45px; height: 45px; background: rgba(255,255,255,0.05); border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; text-decoration: none;">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+    {% if notifications %}
+    <span class="position-absolute top-0 end-0 translate-middle p-1 rounded-circle" style="background: #c084fc; border: 2px solid #0f172a; margin-top: 8px; margin-right: 2px; box-shadow: 0 0 8px #c084fc;">
+        <span class="visually-hidden">New alerts</span>
+    </span>
+    {% endif %}
+</a>
+
+<div id="notif-menu" class="shadow-lg p-0" style="position: absolute; right: 0; width: 350px; background: #0f172a; border: 1px solid var(--border-slate); border-radius: 12px; margin-top: 10px; z-index: 1050; opacity: 0; visibility: hidden; transition: opacity 0.5s ease-in-out;">
+    <div class="p-3 border-bottom border-secondary d-flex justify-content-between align-items-center" style="background: rgba(0,0,0,0.2);">
+        <h6 class="mb-0 text-white fw-bold">Notifications</h6>
+        {% if notifications %}
+            <span class="badge" style="background: rgba(192,132,252,0.2); color: #c084fc;">{{ notifications.count }} New</span>
+        {% endif %}
+    </div>
+    
+    <div class="overflow-auto custom-scrollbar" style="max-height: 350px;">
+        {% for freq in friend_requests %}
+            <div class="p-3 border-bottom border-slate" style="background: rgba(0, 240, 255, 0.05);">
+                <div class="d-flex gap-3">
+                    <img src="https://ui-avatars.com/api/?name={{ freq.from_user.username|urlencode }}&background=1e293b&color=00f0ff&rounded=true" width="36" height="36" class="rounded-circle" alt="Avatar">
+                    <div class="flex-grow-1">
+                        <div class="text-white small mb-2 lh-sm">
+                            <span class="fw-bold" style="color: #00f0ff;">{{ freq.from_user.username }}</span> wants to be your friend!
+                        </div>
+                        <div class="d-flex gap-2">
+                            <form action="{% url 'accept_friend_request' freq.id %}" method="POST" class="m-0 flex-grow-1">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: var(--success-glow, #00ff94); color: #000; font-size: 0.75rem;">Accept</button>
+                            </form>
+                            <form action="{% url 'reject_friend_request' freq.id %}" method="POST" class="m-0 flex-grow-1">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.3); font-size: 0.75rem;">Decline</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+        {% if not notifications and not friend_requests %}
+            <div class="p-4 text-center text-muted small">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mb-2 opacity-50"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg><br>
+                You're all caught up!
+            </div>
+        {% endif %}
+</div>
+
+<script>
+    // --- ГЛОБАЛЬНИЙ ТРЕКЕР АКТИВНОСТІ ЮЗЕРА (ДЛЯ AFK) ---
+    // Створюється лише один раз, навіть якщо HTMX оновлює частину сторінки
+    if (!window.activityTrackerInitialized) {
+        window.lastUserActivity = Date.now();
+        const updateActivity = () => { window.lastUserActivity = Date.now(); };
+        
+        // Відслідковуємо рухи, кліки та натискання клавіатури
+        window.addEventListener('mousemove', updateActivity);
+        window.addEventListener('keydown', updateActivity);
+        window.addEventListener('click', updateActivity);
+        
+        window.activityTrackerInitialized = true;
+    }
+
+    (function() {
+        const bell = document.getElementById('bell-icon-trigger');
+        const menu = document.getElementById('notif-menu');
+        let closeTimeout;
+
+        function openMenu() {
+            clearTimeout(closeTimeout); // Скасовуємо таймер закриття
+            menu.style.visibility = 'visible';
+            menu.style.opacity = '1';
+        }
+
+        function closeMenuImmediatly() {
+            menu.style.opacity = '0'; // Плавне затухання
+            setTimeout(() => {
+                if (menu.style.opacity === '0') {
+                    menu.style.visibility = 'hidden'; // Повністю ховаємо після анімації
+                }
+            }, 500); 
+        }
+
+        function startCloseTimer() {
+            // ЗМІНЕНО: тепер чекає рівно 1 секунду (1000 мс) перед зникненням
+            closeTimeout = setTimeout(() => {
+                closeMenuImmediatly();
+            }, 1000); 
+        }
+
+        function stopCloseTimer() {
+            // Якщо курсор повернувся - скасовуємо зникнення
+            clearTimeout(closeTimeout);
+            if (menu.style.visibility === 'visible') {
+                menu.style.opacity = '1';
+            }
+        }
+
+        if(bell && menu) {
+            // 1. ВІДКРИВАТИ ТІЛЬКИ ПО КЛІКУ
+            bell.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (menu.style.visibility === 'visible' && menu.style.opacity === '1') {
+                    closeMenuImmediatly(); // Якщо клікнули ще раз - закриваємо
+                } else {
+                    openMenu();
+                }
+            });
+
+            // 2. ЯКЩО МИШКА НА ДЗВІНОЧКУ АБО В МЕНЮ - СТОП ТАЙМЕР
+            menu.addEventListener('mouseenter', stopCloseTimer);
+            bell.addEventListener('mouseenter', stopCloseTimer);
+
+            // 3. ЯКЩО МИШКА ПІШЛА ГЕТЬ - ПОЧИНАЄМО ВІДЛІК 1 СЕКУНДИ
+            menu.addEventListener('mouseleave', startCloseTimer);
+            bell.addEventListener('mouseleave', function(e) {
+                // Перевіряємо, щоб курсор не перескочив з дзвіночка на саме меню
+                if (!menu.contains(e.relatedTarget)) {
+                    startCloseTimer();
+                }
+            });
+        }
+
+        // --- ЛОГІКА ТОСТІВ (30 СЕКУНД З ПЕРЕВІРКОЮ AFK) ---
+        {% for n in notifications %}
+            if (!sessionStorage.getItem('toast_shown_{{ n.id }}')) {
+                sessionStorage.setItem('toast_shown_{{ n.id }}', 'true');
+                
+                let toastHtml = `
+                    <div class="toast show border-0 mb-3" style="background: #0f172a; border: 1px solid #c084fc !important; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 12px; width: 320px; transition: opacity 0.5s ease-out;">
+                        <div class="p-3">
+                            <div class="d-flex align-items-start gap-3 mb-3">
+                                <div style="width: 10px; height: 10px; background: #c084fc; border-radius: 50%; box-shadow: 0 0 10px #c084fc; margin-top: 6px;"></div>
+                                <img src="https://ui-avatars.com/api/?name={{ n.sender.username|urlencode }}&background=1e293b&color=fff&rounded=true" width="36" height="36" class="rounded-circle">
+                                <div class="flex-grow-1">
+                                    <div class="text-white small lh-sm">
+                                        <span class="fw-bold" style="color: #00f0ff;">{{ n.sender.username }}</span> {{ n.message }}
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-close btn-close-white" onclick="this.closest('.toast').remove()"></button>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <form action="{% url 'accept_lobby_invite' n.id %}" method="POST" class="m-0 flex-grow-1">
+                                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                    <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: var(--success-glow, #00ff94); color: #000;">Accept</button>
+                                </form>
+                                <form action="{% url 'reject_lobby_invite' n.id %}" method="POST" class="m-0 flex-grow-1">
+                                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                    <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.3);">Dismiss</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('live-toast-container').insertAdjacentHTML('beforeend', toastHtml);
+                let currentToast = document.getElementById('live-toast-container').lastElementChild;
+                
+                try {
+                    let audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+                    audio.volume = 0.4;
+                    audio.play();
+                } catch(e) {}
+                
+                // Таймер на 30 секунд "корисного" часу
+                let timeLeft = 30;
+                let countdown = setInterval(() => {
+                    // Якщо з моменту останнього руху мишки пройшло менше 3 секунд (3000 мс) - юзер НЕ AFK
+                    let isUserActive = (Date.now() - window.lastUserActivity) < 3000;
+                    
+                    if (isUserActive) {
+                        timeLeft--; // Віднімаємо секунду тільки якщо юзер активний
+                    }
+
+                    if (timeLeft <= 0) {
+                        clearInterval(countdown);
+                        if (currentToast) {
+                            currentToast.style.opacity = '0';
+                            setTimeout(() => { if (currentToast) currentToast.remove(); }, 500);
+                        }
+                    }
+                }, 1000);
+            }
+        {% endfor %}
+    })();
+</script>
