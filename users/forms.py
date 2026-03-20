@@ -51,6 +51,7 @@ class GamerProfileForm(forms.ModelForm):
             "role",
             "rank",
             "cs2_faceit_lvl",
+            "cs2_faceit_elo",  # ❗ ОСЬ ТУТ Я ДОДАВ НОВЕ ПОЛЕ ❗
             "cs2_premier_rating",
             "valorant_rank",
             "dota2_rank",

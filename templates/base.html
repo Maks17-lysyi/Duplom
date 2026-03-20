@@ -187,7 +187,7 @@
                     <li class="nav-item">
                         <a class="pill-nav-link {% if request.resolver_match.url_name == 'lobby_create' %}active{% endif %}" href="{% url 'lobby_create' %}">
                             {% if request.resolver_match.url_name == 'lobby_create' %}<span class="active-dot"></span>{% endif %}
-                            Create Party
+                            Create Squads
                         </a>
                     </li>
                     <li class="nav-item">
@@ -206,13 +206,13 @@
 
                 <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0 pb-3 pb-lg-0">
 
-                    <form action="{% url 'home' %}" method="GET" class="m-0">
+                    <form action="{% url 'search' %}" method="GET" class="m-0">
                         <div class="pill-search">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
-                            <input type="text" name="q" placeholder="Search lobbies or users...">
+                            <input type="text" name="q" placeholder="Search squads or users..." value="{{ request.GET.q }}">
                         </div>
                     </form>
 
@@ -316,7 +316,7 @@
                         <span class="brand-neon" style="font-size: 1.5rem;">SquadUp</span>
                     </a>
                     <p class="text-muted mb-4 pe-lg-4" style="font-size: 0.95rem; line-height: 1.6;">
-                        The next generation party finder for competitive gaming. Find your dream team, climb the ranks,
+                        The next generation squad finder for competitive gaming. Find your dream team, climb the ranks,
                         and dominate
                         the leaderboards.
                     </p>
@@ -344,7 +344,7 @@
 
                 <div class="col-lg-2 col-md-6">
                     <h5 class="text-white mb-4 fw-bold">Platform</h5>
-                    <a href="#" class="footer-link">Party Finder</a>
+                    <a href="#" class="footer-link">Squad Finder</a>
                     <a href="{% url 'tournaments' %}" class="footer-link">Tournaments</a>
                     <a href="#" class="footer-link">Leaderboards</a>
                     <a href="#" class="footer-link">Premium</a>
@@ -390,5 +390,8 @@
         });
     </script>
 </body>
+
+<div id="toast-container" class="position-fixed p-3 vstack gap-3" style="top: 80px; right: 20px; z-index: 1060; pointer-events: none;">
+        </div>
 
 </html>

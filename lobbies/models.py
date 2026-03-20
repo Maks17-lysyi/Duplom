@@ -19,6 +19,7 @@ class Game(models.Model):
     def __str__(self):
         return self.name
 
+
 class Lobby(models.Model):
 
     class ValorantRank(models.TextChoices):
@@ -110,9 +111,16 @@ class Lobby(models.Model):
     required_role = models.CharField(max_length=16, choices=RequiredRole.choices, default=RequiredRole.ANY)
     country = models.CharField(max_length=64, blank=True)
 
-    # CS2
-    req_cs2_faceit_lvl_min = models.PositiveSmallIntegerField(null=True, blank=True)
-    req_cs2_faceit_lvl_max = models.PositiveSmallIntegerField(null=True, blank=True)
+    # ❗ ОНОВЛЕНІ ПОЛЯ ДЛЯ CS2 (З ВАЛІДАТОРАМИ ТА ELO) ❗
+    req_cs2_faceit_lvl_min = models.PositiveSmallIntegerField(
+        null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
+    req_cs2_faceit_lvl_max = models.PositiveSmallIntegerField(
+        null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
+    req_cs2_faceit_elo_min = models.PositiveIntegerField(null=True, blank=True, verbose_name="Min Faceit ELO")
+    req_cs2_faceit_elo_max = models.PositiveIntegerField(null=True, blank=True, verbose_name="Max Faceit ELO")
+    
     req_cs2_premier_rating_min = models.PositiveIntegerField(null=True, blank=True)
     req_cs2_premier_rating_max = models.PositiveIntegerField(null=True, blank=True)
 
@@ -199,6 +207,7 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"{self.sender}: {self.content[:20]}"
+
 
 class Tournament(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="tournaments", verbose_name="Гра")

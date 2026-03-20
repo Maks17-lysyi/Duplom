@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Party Finder • SquadUp{% endblock %}
+{% block title %}Squad Finder • SquadUp{% endblock %}
 
 {% block content %}
 <div class="row align-items-center mb-5 pb-4" style="min-height: 60vh;">
@@ -30,13 +30,13 @@
 
         <div class="d-flex flex-wrap gap-3 align-items-center mb-5">
             <a href="{% url 'lobby_create' %}" class="btn-hero-neon">
-                CREATE LOBBY
+                CREATE SQUAD
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                     <path d="M12 5v14m-7-7h14"></path>
                 </svg>
             </a>
-            <a href="#parties" class="btn-hero-outline">
-                BROWSE PARTIES
+            <a href="#squads" class="btn-hero-outline">
+                BROWSE SQUADS
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M5 12h14m-7-7l7 7-7 7"></path>
                 </svg>
@@ -99,9 +99,9 @@
                         <img src="https://ui-avatars.com/api/?name={{ hot_lobby.host.username|urlencode }}&background=0f172a&color=fff&rounded=true"
                             width="32" height="32" class="rounded-circle border border-secondary" style="box-shadow: 0 2px 5px rgba(0,0,0,0.5);" alt="Host" title="Host: {{ hot_lobby.host.username }}" />
                         
-                        {% if hot_lobby.slots_total > 1 %}
+                        {% if hot_lobby.slots_filled > 1 %}
                         <div style="width:32px; height:32px; background:#1e293b; color:#94a3b8; border-radius:50%; font-size:11px; display:flex; align-items:center; justify-content:center; margin-left:-12px; border:2px solid #030712; position: relative; z-index: 2; font-weight: 700;">
-                            +{{ hot_lobby.slots_total|add:"-1" }}
+                            +{{ hot_lobby.slots_filled|add:"-1" }}
                         </div>
                         {% endif %}
                     </div>
@@ -131,7 +131,7 @@
     .filter-wrapper-neon {
         border: 1px solid rgba(255, 255, 255, 0.08);
         border-radius: 16px;
-        background: rgba(15, 23, 42, 0.75); /* Більш прозорий темний фон */
+        background: rgba(15, 23, 42, 0.75);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -188,7 +188,7 @@
     }
 
     .game-selected-info span[style*="border-left"] {
-        border-left: 2px solid rgba(0, 240, 255, 0.2) !important; /* Неоновий роздільник */
+        border-left: 2px solid rgba(0, 240, 255, 0.2) !important;
         padding-left: 1.25rem !important;
     }
 
@@ -322,13 +322,12 @@
         position: absolute;
         top: -9px;
         left: 12px;
-        background-color: #121929; /* Колір фону під написом, щоб перекривав рамку */
+        background-color: #121929;
         padding: 0 6px;
         z-index: 5;
         border-radius: 4px;
     }
 
-    /* Самі поля вибору */
     .sf-select {
         background-color: rgba(0, 0, 0, 0.2);
         border: 1px solid rgba(255, 255, 255, 0.12);
@@ -389,7 +388,6 @@
         transform: translateY(0);
     }
 
-    /* Перемикач мікрофону */
     .toggle-neon .toggle-slider {
         background-color: rgba(0, 0, 0, 0.4) !important;
         border: 1px solid rgba(255,255,255,0.15);
@@ -418,7 +416,6 @@
         transform: translateX(14px);
     }
 
-    /* Анімації карток знизу (турніри) */
     .tournament-list-card {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -434,7 +431,7 @@
     }
 </style>
 
-<div id="parties" class="position-relative mb-4" style="z-index: 50;">
+<div id="squads" class="position-relative mb-4" style="z-index: 50;">
     <form id="filter-form" method="get" class="filter-wrapper-neon">
 
         <div class="game-selector-top">
@@ -610,7 +607,7 @@
         <div class="d-flex align-items-center justify-content-between mb-4">
             <div>
                 <h2 class="mb-0 text-white fw-bold d-flex align-items-center gap-2">Active Squads</h2>
-                <div class="text-muted small">Showing {{ lobbies|length }} active lobbies matching your profile</div>
+                <div class="text-muted small">Showing {{ lobbies|length }} active squads matching your profile</div>
             </div>
             </div>
 
@@ -736,8 +733,8 @@
                     window.history.pushState({}, '', url);
 
                     const countText = document.querySelector('.text-muted.small');
-                    if (countText && countText.textContent.includes('active lobbies')) {
-                        countText.textContent = `Showing ${data.count} active lobbies matching your profile`;
+                    if (countText && countText.textContent.includes('active squads')) {
+                        countText.textContent = `Showing ${data.count} active squads matching your profile`;
                     }
                 })
                 .catch(error => console.error('Error fetching lobbies:', error));

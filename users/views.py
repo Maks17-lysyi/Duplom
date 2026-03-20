@@ -1,12 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 
 from lobbies.models import Lobby, LobbyParticipant
 
 from .forms import GamerProfileForm, RegisterForm, UserUpdateForm
-from .models import GamerProfile
+from .models import GamerProfile, Notification
 
 
 def register_view(request):
@@ -85,3 +85,22 @@ def profile_edit(request):
         "users/profile_edit.html",
         {"user_form": user_form, "profile_form": profile_form},
     )
+
+
+# ==========================================
+# ❗ ФІКС ДЛЯ СПОВІЩЕНЬ (ВБИВАЄ ЇХ В БАЗІ) ❗
+# ==========================================
+@login_required
+def read_notification(request, notif_id):
+    """Позначає сповіщення лобі як прочитане і перекидає куди треба"""
+    notif = get_object_or_404(Notification, id=notif_id, recipient=request.user)
+    notif.is_read = True
+    notif.save()
+    
+    # Якщо ми натиснули Accept, в URL буде ?lobby=...
+    lobby_id = request.GET.get('lobby')
+    if lobby_id:
+        return redirect('lobby_detail', lobby_id) # Перекидаємо в лобі!
+        
+    # Якщо ми натиснули Dismiss - просто оновлюємо сторінку і залишаємось на місці
+    return redirect(request.META.get('HTTP_REFERER', 'home'))

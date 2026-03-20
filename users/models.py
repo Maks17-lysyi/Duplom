@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -78,8 +79,11 @@ class GamerProfile(models.Model):
     # Nationality
     country = models.CharField(max_length=64, blank=True)
 
-    # CS2 Specific
-    cs2_faceit_lvl = models.PositiveSmallIntegerField(null=True, blank=True)
+    # ❗ CS2 Specific (ДОДАНО ВАЛІДАТОРИ ТА ПОЛЕ ELO) ❗
+    cs2_faceit_lvl = models.PositiveSmallIntegerField(
+        null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
+    cs2_faceit_elo = models.PositiveIntegerField(null=True, blank=True, verbose_name="Faceit ELO")
     cs2_premier_rating = models.PositiveIntegerField(null=True, blank=True)
 
     # Valorant Specific
@@ -93,7 +97,7 @@ class GamerProfile(models.Model):
     def __str__(self) -> str:
         return f"{self.user.username} profile"
     
-    # ❗ ОНОВЛЕНО: Тепер бере slug з пов'язаної моделі Game
+    # ❗ ОНОВЛЕНО: Розумний вивід рангу (Пофіксив логіку з ELO) ❗
     @property
     def display_rank(self) -> str:
         """Розумний вивід рангу залежно від вибраної гри"""
@@ -103,13 +107,17 @@ class GamerProfile(models.Model):
         game_slug = self.main_game.slug.lower()
 
         if game_slug == 'cs2':
-            if self.cs2_faceit_lvl and self.cs2_premier_rating:
-                return f"Faceit Lvl {self.cs2_faceit_lvl} | {self.cs2_premier_rating} ELO"
-            elif self.cs2_faceit_lvl:
-                return f"Faceit Lvl {self.cs2_faceit_lvl}"
-            elif self.cs2_premier_rating:
-                return f"Premier {self.cs2_premier_rating}"
-            return "Unranked"
+            parts = []
+            if self.cs2_faceit_lvl:
+                faceit_str = f"Faceit Lvl {self.cs2_faceit_lvl}"
+                if self.cs2_faceit_elo:
+                    faceit_str += f" ({self.cs2_faceit_elo} ELO)"
+                parts.append(faceit_str)
+                
+            if self.cs2_premier_rating:
+                parts.append(f"Premier {self.cs2_premier_rating}")
+                
+            return " | ".join(parts) if parts else "Unranked"
             
         elif game_slug == 'valorant':
             if self.valorant_rank:
@@ -173,6 +181,7 @@ def create_gamer_profile(sender, instance, created, **kwargs):
     if created:
         GamerProfile.objects.create(user=instance)
 
+
 class Notification(models.Model):
     class NotificationType(models.TextChoices):
         FRIEND_REQUEST = 'friend_request', 'Запит у друзі'
@@ -192,3 +201,17 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"To {self.recipient.username}: {self.message}"
+
+# ❗ ТЕПЕР DIRECT MESSAGE СТОЇТЬ ОКРЕМО, ЯК САМОСТІЙНА МОДЕЛЬ ❗
+class DirectMessage(models.Model):
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='sent_messages', on_delete=models.CASCADE)
+    receiver = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='received_messages', on_delete=models.CASCADE)
+    content = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at'] # Сортуємо від найстаріших до найновіших
+
+    def __str__(self):
+        return f"From {self.sender.username} to {self.receiver.username}"

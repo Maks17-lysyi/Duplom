@@ -236,7 +236,7 @@
                 <h6 class="mb-0 text-white fw-bold letter-spacing-1 text-uppercase">Squad Chat</h6>
             </div>
 
-            <div class="flex-grow-1 p-3 overflow-auto chat-container custom-scrollbar" id="chat-messages" hx-get="{% url 'lobby_chat_messages' lobby.id %}" hx-trigger="load, every 3s">
+            <div class="flex-grow-1 p-3 overflow-auto chat-container custom-scrollbar" id="squadup-chat-box" hx-get="{% url 'lobby_chat_messages' lobby.id %}" hx-trigger="load, every 3s">
                 <div class="text-center h-100 d-flex flex-column align-items-center justify-content-center text-muted small">
                     <div class="spinner-border spinner-border-sm mb-3" style="color: var(--primary-glow);" role="status"></div>
                     Establishing secure connection...
@@ -245,7 +245,7 @@
 
             <div class="p-3 border-top border-slate" style="background: rgba(0,0,0,0.4);">
                 {% if user.is_authenticated %}
-                <form hx-post="{% url 'lobby_chat_send' lobby.id %}" hx-target="#chat-messages" hx-on::after-request="this.reset()">
+                <form hx-post="{% url 'lobby_chat_send' lobby.id %}" hx-target="#squadup-chat-box" hx-on::after-request="this.reset()">
                     {% csrf_token %}
                     <div class="input-group chat-input-group">
                         <input type="text" name="content" class="form-control" placeholder="Message squad..." required autocomplete="off">
@@ -306,7 +306,6 @@
     .hover-bg { transition: background 0.2s; }
     .hover-bg:hover { background: rgba(255,255,255,0.02); }
 
-    /* ВСІ ТВОЇ СТАРІ СТИЛІ ЗБЕРЕЖЕНО НИЖЧЕ */
     .lobby-detail-card {
         background: rgba(11, 15, 25, 0.7);
         backdrop-filter: blur(12px);
@@ -431,4 +430,50 @@
         border-color: var(--border-slate, #1e293b) !important;
     }
 </style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const chatBox = document.getElementById('squadup-chat-box');
+        if (!chatBox) return;
+
+        // Підключаємо звук
+        const chatSound = new Audio("{% static 'sounds/chat.mp3' %}");
+        chatSound.volume = 0.4;
+
+        // Функція скролу вниз
+        const scrollToBottom = () => {
+            chatBox.scrollTo({
+                top: chatBox.scrollHeight,
+                behavior: 'smooth'
+            });
+        };
+
+        // Лічильник повідомлень. Рахуємо блоки .mb-2
+        let lastMessageCount = chatBox.querySelectorAll('.mb-2').length;
+
+        // Перший скрол після завантаження сторінки
+        setTimeout(scrollToBottom, 300);
+
+        // Слухаємо HTMX оновлення
+        chatBox.addEventListener('htmx:afterSwap', function(event) {
+            // Рахуємо нову кількість повідомлень
+            const currentMessageCount = chatBox.querySelectorAll('.mb-2').length;
+
+            // Якщо повідомлень стало БІЛЬШЕ
+            if (currentMessageCount > lastMessageCount) {
+                console.log("📩 Нове повідомлення! Скролимо і граємо звук.");
+                
+                scrollToBottom();
+                
+                // Граємо звук (уникаємо помилки блокування браузером)
+                if (lastMessageCount > 0) {
+                    chatSound.play().catch(e => console.log("🔇 Звук чату чекає кліку по сторінці."));
+                }
+            }
+            
+            // Оновлюємо лічильник
+            lastMessageCount = currentMessageCount;
+        });
+    });
+</script>
 {% endblock %}

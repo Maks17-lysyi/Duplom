@@ -12,24 +12,24 @@
 
     <div class="row g-4">
         <div class="col-lg-8">
-            <ul class="nav nav-tabs custom-battlefy-tabs mb-4" id="friendsTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="my-friends-tab" data-bs-toggle="tab" data-bs-target="#my-friends" type="button" role="tab">MY FRIENDS</button>
+            <ul class="nav custom-battlefy-tabs mb-4">
+                <li class="nav-item">
+                    <a class="nav-link text-uppercase {% if not search_query %}active{% endif %}" data-bs-toggle="tab" href="#my-friends">My Friends</a>
                 </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="search-tab" data-bs-toggle="tab" data-bs-target="#search" type="button" role="tab">FIND FRIENDS</button>
+                <li class="nav-item">
+                    <a class="nav-link text-uppercase {% if search_query %}active{% endif %}" data-bs-toggle="tab" href="#find-friends" id="search-tab">Find Friends</a>
                 </li>
             </ul>
 
             <div class="tab-content" id="friendsTabsContent">
                 
-                <div class="tab-pane fade show active" id="my-friends" role="tabpanel">
+                <div class="tab-pane fade {% if not search_query %}show active{% endif %}" id="my-friends" role="tabpanel">
                     <div class="row g-3">
                         {% for friend_profile in friends %}
                         <div class="col-md-6">
-                            <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-slate);">
+                            <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-slate); transition: all 0.2s;">
                                 <div class="d-flex align-items-center gap-3">
-                                    <img src="https://ui-avatars.com/api/?name={{ friend_profile.user.username }}&background=1e293b&color=00f0ff&rounded=true" alt="Avatar" style="width: 45px; height: 45px;">
+                                    <img src="https://ui-avatars.com/api/?name={{ friend_profile.user.username|urlencode }}&background=1e293b&color=00f0ff&rounded=true" alt="Avatar" style="width: 45px; height: 45px; border: 2px solid #0f172a;">
                                     <div>
                                         <div class="text-white fw-bold">{{ friend_profile.user.username }}</div>
                                         <div class="text-muted small">Reputation: {{ friend_profile.reputation_score }}</div>
@@ -37,45 +37,55 @@
                                 </div>
                                 <form action="{% url 'remove_friend' friend_profile.user.id %}" method="POST" class="m-0">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Видалити з друзів?')">Remove</button>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 6px; font-weight: 600;" onclick="return confirm('Видалити з друзів?')">Remove</button>
                                 </form>
                             </div>
                         </div>
                         {% empty %}
-                        <div class="col-12 text-center py-5">
-                            <div class="text-muted mb-3">You don't have any friends yet.</div>
-                            <button class="btn btn-neon btn-sm" onclick="document.getElementById('search-tab').click();" style="background: #00ff94; color: #000; border-radius: 50px; padding: 0.5rem 1.5rem; font-weight: bold;">Find Friends</button>
+                        <div class="col-12 text-center py-5 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px dashed var(--border-slate);">
+                            <div class="text-muted mb-3 fw-semibold">You don't have any friends yet.</div>
+                            <button class="btn px-4 py-2" onclick="document.getElementById('search-tab').click();" style="background: var(--success-glow, #00ff94); color: #000; border-radius: 50px; font-weight: 800; text-transform: uppercase;">Find Friends</button>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
 
-                <div class="tab-pane fade" id="search" role="tabpanel">
+                <div class="tab-pane fade {% if search_query %}show active{% endif %}" id="find-friends" role="tabpanel">
                     <form method="GET" action="{% url 'friends' %}" class="mb-4">
-                        <div class="d-flex gap-2">
-                            <input type="text" name="q" value="{{ search_query }}" class="form-control bg-dark text-white border-secondary" placeholder="Enter username..." style="height: 50px;">
-                            <button type="submit" class="btn fw-bold px-4" style="background: var(--success-glow, #00ff94); color: #000;">Search</button>
+                        <div class="input-group" style="border-radius: 50px; overflow: hidden; border: 1px solid var(--border-slate); background: rgba(0,0,0,0.5);">
+                            <span class="input-group-text bg-transparent border-0 text-muted ps-4">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            </span>
+                            <input type="text" name="q" value="{{ search_query }}" class="form-control bg-transparent text-white border-0 shadow-none" placeholder="Enter exact username..." style="height: 50px; padding-left: 10px;">
+                            <button type="submit" class="btn fw-bold px-4" style="background: var(--success-glow, #00ff94); color: #000;">SEARCH</button>
                         </div>
                     </form>
 
                     {% if search_query %}
-                        <h5 class="text-white mb-3">Search Results for "{{ search_query }}"</h5>
+                        <h6 class="text-white mb-3 fw-bold text-uppercase" style="font-size: 0.8rem; letter-spacing: 1px;">Search Results for "{{ search_query }}"</h6>
                         <div class="row g-3">
                             {% for u in search_results %}
                             <div class="col-md-6">
                                 <div class="d-flex align-items-center justify-content-between p-3 rounded-3" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-slate);">
                                     <div class="d-flex align-items-center gap-3">
-                                        <img src="https://ui-avatars.com/api/?name={{ u.username }}&background=1e293b&color=00f0ff&rounded=true" alt="Avatar" style="width: 45px; height: 45px;">
+                                        <img src="https://ui-avatars.com/api/?name={{ u.username|urlencode }}&background=1e293b&color=00f0ff&rounded=true" alt="Avatar" style="width: 45px; height: 45px;">
                                         <div class="text-white fw-bold">{{ u.username }}</div>
                                     </div>
-                                    <form action="{% url 'send_friend_request' u.id %}" method="POST" class="m-0">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm" style="background: rgba(0, 255, 148, 0.1); color: #00ff94; border: 1px solid #00ff94;">Add Friend</button>
-                                    </form>
-                                </div>
+                                    
+                                    {% if u.id in sent_requests_ids %}
+                                        <button class="btn btn-sm fw-bold px-3 py-1" style="background: rgba(255, 255, 255, 0.1); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50px;" disabled>Request Sent</button>
+                                    {% else %}
+                                        <form action="{% url 'send_friend_request' u.id %}" method="POST" class="m-0">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm fw-bold px-3 py-1" style="background: rgba(0, 255, 148, 0.1); color: #00ff94; border: 1px solid rgba(0, 255, 148, 0.4); border-radius: 50px; transition: all 0.2s;" onmouseover="this.style.background='rgba(0, 255, 148, 0.2)';" onmouseout="this.style.background='rgba(0, 255, 148, 0.1)';">Add Friend</button>
+                                        </form>
+                                    {% endif %}
+                                    </div>
                             </div>
                             {% empty %}
-                            <div class="col-12 text-muted">No users found.</div>
+                            <div class="col-12 text-center text-muted p-5 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px dashed var(--border-slate);">
+                                No users found matching that name.
+                            </div>
                             {% endfor %}
                         </div>
                     {% endif %}
@@ -85,31 +95,37 @@
         </div>
 
         <div class="col-lg-4">
-            <div class="p-4 rounded-3" style="background: #0f172a; border: 1px solid var(--border-slate);">
-                <h6 class="text-white fw-bold mb-4 text-uppercase" style="font-size: 0.85rem; letter-spacing: 1px;">
-                    Pending Requests <span class="badge bg-danger ms-2 rounded-pill">{{ incoming_requests.count }}</span>
+            <div class="p-4 rounded-3" style="background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border: 1px solid var(--border-slate);">
+                <h6 class="text-white fw-bold mb-4 text-uppercase d-flex align-items-center justify-content-between" style="font-size: 0.85rem; letter-spacing: 1px;">
+                    Pending Requests 
+                    {% if incoming_requests.count > 0 %}
+                        <span class="badge" style="background: #ef4444; color: white;">{{ incoming_requests.count }}</span>
+                    {% endif %}
                 </h6>
                 
                 <div class="d-flex flex-column gap-3">
                     {% for req in incoming_requests %}
                     <div class="p-3 rounded-3" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
                         <div class="d-flex align-items-center gap-3 mb-3">
-                            <img src="https://ui-avatars.com/api/?name={{ req.from_user.username }}&background=1e293b&color=00f0ff&rounded=true" alt="Avatar" style="width: 40px; height: 40px;">
+                            <img src="https://ui-avatars.com/api/?name={{ req.from_user.username|urlencode }}&background=1e293b&color=00f0ff&rounded=true" alt="Avatar" style="width: 40px; height: 40px; border: 2px solid #0f172a;">
                             <div class="text-white fw-bold">{{ req.from_user.username }}</div>
                         </div>
                         <div class="d-flex gap-2">
                             <form action="{% url 'accept_friend_request' req.id %}" method="POST" class="flex-grow-1 m-0">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: var(--success-glow, #00ff94); color: #000;">Accept</button>
+                                <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: var(--success-glow, #00ff94); color: #000; border-radius: 6px;">Accept</button>
                             </form>
                             <form action="{% url 'reject_friend_request' req.id %}" method="POST" class="flex-grow-1 m-0">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.3);">Decline</button>
+                                <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.3); border-radius: 6px;">Decline</button>
                             </form>
                         </div>
                     </div>
                     {% empty %}
-                    <div class="text-muted small text-center py-3">No pending friend requests.</div>
+                    <div class="text-muted small text-center py-4 d-flex flex-column align-items-center justify-content-center">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mb-2 opacity-50"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                        No pending friend requests.
+                    </div>
                     {% endfor %}
                 </div>
             </div>
@@ -119,10 +135,12 @@
 </div>
 
 <style>
-    .custom-battlefy-tabs { border-bottom: 2px solid var(--border-slate); gap: 1rem; }
-    .custom-battlefy-tabs .nav-link { color: #94a3b8; background: transparent; border: none; padding: 0.5rem 0; font-weight: 700; font-size: 0.9rem; letter-spacing: 1px; position: relative; }
+    /* Стилі для кастомних вкладок (Tabs) */
+    .custom-battlefy-tabs { border-bottom: 2px solid var(--border-slate); gap: 1.5rem; flex-wrap: nowrap; overflow-x: auto; }
+    .custom-battlefy-tabs::-webkit-scrollbar { display: none; }
+    .custom-battlefy-tabs .nav-link { color: #94a3b8; background: transparent; border: none; padding: 0.75rem 0.5rem; font-weight: 800; font-size: 0.85rem; letter-spacing: 1px; position: relative; border-radius: 0; white-space: nowrap; }
     .custom-battlefy-tabs .nav-link:hover { color: #fff; }
-    .custom-battlefy-tabs .nav-link.active { color: #fff; background: transparent; border: none; }
-    .custom-battlefy-tabs .nav-link.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: var(--success-glow, #00ff94); box-shadow: 0 0 10px rgba(0, 255, 148, 0.5); }
+    .custom-battlefy-tabs .nav-link.active { color: var(--success-glow, #00ff94); background: transparent; border: none; }
+    .custom-battlefy-tabs .nav-link.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 3px; background: var(--success-glow, #00ff94); box-shadow: 0 0 10px rgba(0, 255, 148, 0.5); border-radius: 3px 3px 0 0; }
 </style>
 {% endblock %}

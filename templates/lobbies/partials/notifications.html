@@ -1,189 +1,276 @@
-<a class="nav-link text-white position-relative d-flex align-items-center justify-content-center" 
-   id="bell-icon-trigger" href="javascript:void(0);" 
-   style="width: 45px; height: 45px; background: rgba(255,255,255,0.05); border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); cursor: pointer; text-decoration: none;">
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-    {% if notifications %}
-    <span class="position-absolute top-0 end-0 translate-middle p-1 rounded-circle" style="background: #c084fc; border: 2px solid #0f172a; margin-top: 8px; margin-right: 2px; box-shadow: 0 0 8px #c084fc;">
-        <span class="visually-hidden">New alerts</span>
-    </span>
-    {% endif %}
-</a>
+{% load static %}
 
-<div id="notif-menu" class="shadow-lg p-0" style="position: absolute; right: 0; width: 350px; background: #0f172a; border: 1px solid var(--border-slate); border-radius: 12px; margin-top: 10px; z-index: 1050; opacity: 0; visibility: hidden; transition: opacity 0.5s ease-in-out;">
-    <div class="p-3 border-bottom border-secondary d-flex justify-content-between align-items-center" style="background: rgba(0,0,0,0.2);">
-        <h6 class="mb-0 text-white fw-bold">Notifications</h6>
-        {% if notifications %}
-            <span class="badge" style="background: rgba(192,132,252,0.2); color: #c084fc;">{{ notifications.count }} New</span>
-        {% endif %}
-    </div>
+<div class="position-relative" id="bell-wrapper">
     
-    <div class="overflow-auto custom-scrollbar" style="max-height: 350px;">
-        {% for freq in friend_requests %}
-            <div class="p-3 border-bottom border-slate" style="background: rgba(0, 240, 255, 0.05);">
-                <div class="d-flex gap-3">
-                    <img src="https://ui-avatars.com/api/?name={{ freq.from_user.username|urlencode }}&background=1e293b&color=00f0ff&rounded=true" width="36" height="36" class="rounded-circle" alt="Avatar">
-                    <div class="flex-grow-1">
-                        <div class="text-white small mb-2 lh-sm">
+    <a href="#" id="squadup-bell-btn" class="d-flex align-items-center justify-content-center text-decoration-none position-relative" style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); transition: 0.2s;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        {% if notifications.count > 0 or friend_requests.count > 0 %}
+        <span class="position-absolute top-0 start-100 translate-middle p-1 border border-dark rounded-circle" style="background-color: #c084fc; margin-left: -5px; margin-top: 5px;">
+            <span class="visually-hidden">New alerts</span>
+        </span>
+        {% endif %}
+    </a>
+
+    <div id="squadup-bell-menu" class="squadup-dropdown-menu p-0 shadow-lg position-absolute end-0" style="width: 320px; background: #0f172a; border: 1px solid var(--border-slate, #1e293b); border-radius: 12px; overflow: hidden; margin-top: 10px; z-index: 1050;">
+        <div class="p-3 border-bottom border-slate d-flex justify-content-between align-items-center" style="background: rgba(0,0,0,0.2);">
+            <h6 class="mb-0 text-white fw-bold">Notifications</h6>
+            <span class="badge" style="background: rgba(192, 132, 252, 0.2); color: #c084fc;">
+                {{ notifications.count|add:friend_requests.count }} New
+            </span>
+        </div>
+
+        <div class="vstack" style="max-height: 400px; overflow-y: auto;">
+            
+            {% for freq in friend_requests %}
+                <div class="p-3 border-bottom border-slate dropdown-item-wrapper" style="background: rgba(0, 240, 255, 0.05);">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <img src="https://ui-avatars.com/api/?name={{ freq.from_user.username|urlencode }}&background=1e293b&color=00f0ff&rounded=true" width="36" height="36" class="rounded-circle" alt="Avatar">
+                        <div class="text-white small lh-sm">
                             <span class="fw-bold" style="color: #00f0ff;">{{ freq.from_user.username }}</span> wants to be your friend!
                         </div>
-                        <div class="d-flex gap-2">
-                            <form action="{% url 'accept_friend_request' freq.id %}" method="POST" class="m-0 flex-grow-1">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: var(--success-glow, #00ff94); color: #000; font-size: 0.75rem;">Accept</button>
-                            </form>
-                            <form action="{% url 'reject_friend_request' freq.id %}" method="POST" class="m-0 flex-grow-1">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.3); font-size: 0.75rem;">Decline</button>
-                            </form>
-                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-2">
+                        <form action="{% url 'accept_friend_request' freq.id %}" method="POST" class="m-0 flex-grow-1 ajax-form">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: #00e58f; color: #000; border-radius: 6px;">Accept</button>
+                        </form>
+                        <form action="{% url 'reject_friend_request' freq.id %}" method="POST" class="m-0 flex-grow-1 ajax-form">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.3); border-radius: 6px;">Decline</button>
+                        </form>
                     </div>
                 </div>
-            </div>
-        {% endfor %}
+            {% endfor %}
 
-        {% if not notifications and not friend_requests %}
-            <div class="p-4 text-center text-muted small">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mb-2 opacity-50"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg><br>
-                You're all caught up!
-            </div>
-        {% endif %}
-</div>
-
-<script>
-    // --- ГЛОБАЛЬНИЙ ТРЕКЕР АКТИВНОСТІ ЮЗЕРА (ДЛЯ AFK) ---
-    // Створюється лише один раз, навіть якщо HTMX оновлює частину сторінки
-    if (!window.activityTrackerInitialized) {
-        window.lastUserActivity = Date.now();
-        const updateActivity = () => { window.lastUserActivity = Date.now(); };
-        
-        // Відслідковуємо рухи, кліки та натискання клавіатури
-        window.addEventListener('mousemove', updateActivity);
-        window.addEventListener('keydown', updateActivity);
-        window.addEventListener('click', updateActivity);
-        
-        window.activityTrackerInitialized = true;
-    }
-
-    (function() {
-        const bell = document.getElementById('bell-icon-trigger');
-        const menu = document.getElementById('notif-menu');
-        let closeTimeout;
-
-        function openMenu() {
-            clearTimeout(closeTimeout); // Скасовуємо таймер закриття
-            menu.style.visibility = 'visible';
-            menu.style.opacity = '1';
-        }
-
-        function closeMenuImmediatly() {
-            menu.style.opacity = '0'; // Плавне затухання
-            setTimeout(() => {
-                if (menu.style.opacity === '0') {
-                    menu.style.visibility = 'hidden'; // Повністю ховаємо після анімації
-                }
-            }, 500); 
-        }
-
-        function startCloseTimer() {
-            // ЗМІНЕНО: тепер чекає рівно 1 секунду (1000 мс) перед зникненням
-            closeTimeout = setTimeout(() => {
-                closeMenuImmediatly();
-            }, 1000); 
-        }
-
-        function stopCloseTimer() {
-            // Якщо курсор повернувся - скасовуємо зникнення
-            clearTimeout(closeTimeout);
-            if (menu.style.visibility === 'visible') {
-                menu.style.opacity = '1';
-            }
-        }
-
-        if(bell && menu) {
-            // 1. ВІДКРИВАТИ ТІЛЬКИ ПО КЛІКУ
-            bell.addEventListener('click', function(e) {
-                e.preventDefault();
-                if (menu.style.visibility === 'visible' && menu.style.opacity === '1') {
-                    closeMenuImmediatly(); // Якщо клікнули ще раз - закриваємо
-                } else {
-                    openMenu();
-                }
-            });
-
-            // 2. ЯКЩО МИШКА НА ДЗВІНОЧКУ АБО В МЕНЮ - СТОП ТАЙМЕР
-            menu.addEventListener('mouseenter', stopCloseTimer);
-            bell.addEventListener('mouseenter', stopCloseTimer);
-
-            // 3. ЯКЩО МИШКА ПІШЛА ГЕТЬ - ПОЧИНАЄМО ВІДЛІК 1 СЕКУНДИ
-            menu.addEventListener('mouseleave', startCloseTimer);
-            bell.addEventListener('mouseleave', function(e) {
-                // Перевіряємо, щоб курсор не перескочив з дзвіночка на саме меню
-                if (!menu.contains(e.relatedTarget)) {
-                    startCloseTimer();
-                }
-            });
-        }
-
-        // --- ЛОГІКА ТОСТІВ (30 СЕКУНД З ПЕРЕВІРКОЮ AFK) ---
-        {% for n in notifications %}
-            if (!sessionStorage.getItem('toast_shown_{{ n.id }}')) {
-                sessionStorage.setItem('toast_shown_{{ n.id }}', 'true');
-                
-                let toastHtml = `
-                    <div class="toast show border-0 mb-3" style="background: #0f172a; border: 1px solid #c084fc !important; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 12px; width: 320px; transition: opacity 0.5s ease-out;">
-                        <div class="p-3">
-                            <div class="d-flex align-items-start gap-3 mb-3">
-                                <div style="width: 10px; height: 10px; background: #c084fc; border-radius: 50%; box-shadow: 0 0 10px #c084fc; margin-top: 6px;"></div>
-                                <img src="https://ui-avatars.com/api/?name={{ n.sender.username|urlencode }}&background=1e293b&color=fff&rounded=true" width="36" height="36" class="rounded-circle">
-                                <div class="flex-grow-1">
-                                    <div class="text-white small lh-sm">
-                                        <span class="fw-bold" style="color: #00f0ff;">{{ n.sender.username }}</span> {{ n.message }}
-                                    </div>
-                                </div>
-                                <button type="button" class="btn-close btn-close-white" onclick="this.closest('.toast').remove()"></button>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <form action="{% url 'accept_lobby_invite' n.id %}" method="POST" class="m-0 flex-grow-1">
-                                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-                                    <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: var(--success-glow, #00ff94); color: #000;">Accept</button>
-                                </form>
-                                <form action="{% url 'reject_lobby_invite' n.id %}" method="POST" class="m-0 flex-grow-1">
-                                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-                                    <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.3);">Dismiss</button>
-                                </form>
-                            </div>
+            {% for n in notifications %}
+                <div class="p-3 border-bottom border-slate dropdown-item-wrapper">
+                    <div class="d-flex align-items-start gap-3 mb-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: rgba(0,255,148,0.1); border: 1px solid #00ff94;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff94" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="text-white small mb-1">{{ n.message }}</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">{{ n.created_at|timesince }} ago</div>
                         </div>
                     </div>
-                `;
-                
-                document.getElementById('live-toast-container').insertAdjacentHTML('beforeend', toastHtml);
-                let currentToast = document.getElementById('live-toast-container').lastElementChild;
-                
-                try {
-                    let audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
-                    audio.volume = 0.4;
-                    audio.play();
-                } catch(e) {}
-                
-                // Таймер на 30 секунд "корисного" часу
-                let timeLeft = 30;
-                let countdown = setInterval(() => {
-                    // Якщо з моменту останнього руху мишки пройшло менше 3 секунд (3000 мс) - юзер НЕ AFK
-                    let isUserActive = (Date.now() - window.lastUserActivity) < 3000;
-                    
-                    if (isUserActive) {
-                        timeLeft--; // Віднімаємо секунду тільки якщо юзер активний
-                    }
+                    <div class="d-flex gap-2 mt-2">
+                        {% if n.notification_type == 'lobby_invite' and n.lobby_id %}
+                            <a href="{% url 'read_notification' n.id %}?lobby={{ n.lobby_id }}" class="btn btn-sm w-100 fw-bold" style="background: #00e58f; color: #000; border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Accept</a>
+                            <a href="{% url 'read_notification' n.id %}" class="btn btn-sm w-100 fw-bold ajax-link" style="background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.3); border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Dismiss</a>
+                        {% else %}
+                            <a href="{% url 'read_notification' n.id %}" class="btn btn-sm w-100 fw-bold ajax-link" style="background: rgba(255,255,255,0.1); color: #fff; border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Dismiss</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
 
-                    if (timeLeft <= 0) {
-                        clearInterval(countdown);
-                        if (currentToast) {
-                            currentToast.style.opacity = '0';
-                            setTimeout(() => { if (currentToast) currentToast.remove(); }, 500);
-                        }
-                    }
-                }, 1000);
+            {% if not notifications and not friend_requests %}
+                <div class="p-4 text-center text-muted small">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mb-2 opacity-50"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg><br>
+                    You're all caught up!
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div id="hidden-toasts-data" style="display: none;">
+    
+    {% for freq in friend_requests %}
+    <div class="squadup-toast p-3 rounded-3 shadow-lg position-relative" id="toast-req-{{ freq.id }}" style="background: #0f172a; border: 1px solid var(--border-slate); width: 320px; pointer-events: auto;">
+        <div class="d-flex align-items-center gap-3 mb-2">
+            <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 40px; height: 40px; background: rgba(0, 240, 255, 0.1); border: 1px solid #00f0ff; flex-shrink: 0;">
+                {{ freq.from_user.username|slice:":2"|upper }}
+            </div>
+            <div class="text-white small lh-sm pe-3">
+                <span class="fw-bold" style="color: #00f0ff;">{{ freq.from_user.username }}</span> wants to be your friend!
+            </div>
+        </div>
+        <div class="d-flex gap-2 mt-2">
+            <form action="{% url 'accept_friend_request' freq.id %}" method="POST" class="m-0 flex-grow-1 ajax-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm w-100 fw-bold action-btn" style="background: #00e58f; color: #000; border-radius: 6px;">Accept</button>
+            </form>
+            <form action="{% url 'reject_friend_request' freq.id %}" method="POST" class="m-0 flex-grow-1 ajax-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm w-100 fw-bold action-btn" style="background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.3); border-radius: 6px;">Decline</button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+
+    {% for n in notifications %}
+    <div class="squadup-toast p-3 rounded-3 shadow-lg position-relative" id="toast-notif-{{ n.id }}" style="background: #0f172a; border: 1px solid var(--border-slate); width: 320px; pointer-events: auto;">
+        <div class="d-flex align-items-start gap-3 mb-2">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: rgba(0,255,148,0.1); border: 1px solid #00ff94;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff94" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+            <div class="flex-grow-1 pe-2">
+                <div class="text-white small mb-1">{{ n.message }}</div>
+            </div>
+        </div>
+        <div class="d-flex gap-2 mt-2">
+            {% if n.notification_type == 'lobby_invite' and n.lobby_id %}
+                <a href="{% url 'read_notification' n.id %}?lobby={{ n.lobby_id }}" class="btn btn-sm w-100 fw-bold action-btn" style="background: #00e58f; color: #000; border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Accept</a>
+                <a href="{% url 'read_notification' n.id %}" class="btn btn-sm w-100 fw-bold ajax-link action-btn" style="background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.3); border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Dismiss</a>
+            {% else %}
+                <a href="{% url 'read_notification' n.id %}" class="btn btn-sm w-100 fw-bold ajax-link action-btn" style="background: rgba(255,255,255,0.1); color: #fff; border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Dismiss</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .squadup-dropdown-menu { display: block; visibility: hidden; opacity: 0; transform: translateY(15px); transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease; pointer-events: none; }
+    .squadup-dropdown-menu.show-menu { visibility: visible; opacity: 1; transform: translateY(0); pointer-events: auto; }
+    @keyframes slideInRightToast { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideOutRightToast { from { transform: translateX(0); opacity: 1; } to { transform: translateX(120%); opacity: 0; } }
+</style>
+
+<script>
+    // --- 1. AJAX КНОПКИ ---
+    if (!window.ajaxSetupDone) {
+        const hideElement = (el) => {
+            if (el) {
+                el.style.transition = 'opacity 0.3s, transform 0.3s';
+                el.style.opacity = '0';
+                if (el.classList.contains('squadup-toast')) el.style.transform = 'translateX(100%)';
+                setTimeout(() => el.remove(), 300);
             }
-        {% endfor %}
+        };
+
+        document.addEventListener('submit', (e) => {
+            if (e.target.classList.contains('ajax-form')) {
+                e.preventDefault(); 
+                fetch(e.target.action, { method: 'POST', body: new FormData(e.target), headers: {'X-Requested-With': 'XMLHttpRequest'} });
+                hideElement(e.target.closest('.squadup-toast, .dropdown-item-wrapper'));
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('.ajax-link');
+            if (link) {
+                e.preventDefault();
+                fetch(link.href, { headers: {'X-Requested-With': 'XMLHttpRequest'} });
+                hideElement(link.closest('.squadup-toast, .dropdown-item-wrapper'));
+            }
+        });
+
+        window.ajaxSetupDone = true;
+    }
+
+    // --- 2. ДЗВІНОЧОК ---
+    (function() {
+        const btn = document.getElementById('squadup-bell-btn');
+        const menu = document.getElementById('squadup-bell-menu');
+        if (!btn || !menu) return;
+
+        if (window.isBellOpen) menu.classList.add('show-menu');
+
+        btn.onclick = (e) => {
+            e.preventDefault(); e.stopPropagation();
+            window.isBellOpen = !window.isBellOpen;
+            if (window.isBellOpen) menu.classList.add('show-menu');
+            else menu.classList.remove('show-menu');
+        };
+
+        if (!window.bellClickOutside) {
+            document.addEventListener('click', (e) => {
+                const curMenu = document.getElementById('squadup-bell-menu');
+                const curBtn = document.getElementById('squadup-bell-btn');
+                if (window.isBellOpen && curMenu && !curMenu.contains(e.target) && !curBtn.contains(e.target)) {
+                    window.isBellOpen = false;
+                    curMenu.classList.remove('show-menu');
+                }
+            });
+            window.bellClickOutside = true;
+        }
+    })();
+
+    // --- 3. ТОАСТИ ТА ЗВУК ---
+    (function() {
+        // ❗ ЗВУКИ ПІДКЛЮЧЕНО ТУТ ❗
+        const notifySound = new Audio("{% static 'sounds/notification.wav' %}"); 
+        notifySound.volume = 0.5; // Гучність 50%
+        
+        // Підготував змінну для чату на майбутнє!
+        window.chatSound = new Audio("{% static 'sounds/chat.mp3' %}");
+        window.chatSound.volume = 0.4;
+
+        const playNotifySound = () => {
+            let playPromise = notifySound.play();
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    console.log("🎵 Звук інвайту успішно зіграв!");
+                }).catch(error => {
+                    console.log("🔇 Браузер чекає на перший клік мишкою по сайту для відтворення звуку.");
+                });
+            }
+        };
+
+        let container = document.getElementById('toast-fixed-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-fixed-container';
+            container.className = 'position-fixed p-3 vstack gap-3';
+            container.style.cssText = 'top: 80px; right: 20px; z-index: 9999; pointer-events: none;';
+            document.body.appendChild(container);
+        }
+
+        let closedToasts = JSON.parse(sessionStorage.getItem('squadToasts_v8') || '[]');
+
+        document.querySelectorAll('#hidden-toasts-data .squadup-toast').forEach(toast => {
+            const tid = toast.id;
+            
+            if (!closedToasts.includes(tid) && !document.getElementById(tid + '-visible')) {
+                
+                let clone = toast.cloneNode(true);
+                clone.id = tid + '-visible';
+                clone.style.animation = 'slideInRightToast 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards';
+                container.appendChild(clone);
+
+                // 🔊 ГРАЄМО ЗВУК ПРИ ВИЛЬОТІ!
+                playNotifySound();
+
+                let timer;
+                let isAfk = true;
+
+                const closeToast = () => {
+                    if (!closedToasts.includes(tid)) {
+                        closedToasts.push(tid);
+                        sessionStorage.setItem('squadToasts_v8', JSON.stringify(closedToasts));
+                    }
+                    clone.style.animation = 'slideOutRightToast 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards';
+                    setTimeout(() => clone.remove(), 400);
+                };
+
+                const resetTimer = (ms) => {
+                    clearTimeout(timer);
+                    timer = setTimeout(closeToast, ms);
+                };
+
+                const wakeUp = () => {
+                    if (isAfk) {
+                        isAfk = false;
+                        resetTimer(15000); 
+                    }
+                };
+
+                document.addEventListener('mousemove', wakeUp, {once: true});
+                document.addEventListener('keydown', wakeUp, {once: true});
+
+                clone.addEventListener('mouseenter', () => clearTimeout(timer));
+                
+                clone.addEventListener('mouseleave', () => {
+                    if (!isAfk) resetTimer(4000);
+                });
+
+                // Закриття на кнопки в тоасті
+                clone.querySelectorAll('.action-btn').forEach(b => {
+                    b.addEventListener('click', closeToast);
+                });
+            }
+        });
     })();
 </script>

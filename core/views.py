@@ -8,10 +8,11 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from django.db.models import Q  # <--- ВАЖЛИВО ДЛЯ ПОШУКУ! ДОДАЙ ЦЕЙ ІМПОРТ НА ПОЧАТОК ФАЙЛУ
-from users.models import Notification
+from django.db.models import Q  # <--- ВАЖЛИВО ДЛЯ ПОШУКУ
+from users.models import DirectMessage
+
+from users.models import Notification, FriendRequest, GamerProfile
 from lobbies.models import Lobby, Game, Tournament
-from users.models import FriendRequest, GamerProfile  # Переконайтеся, що моделі друзів знаходяться в users.models
 
 User = get_user_model()
 
@@ -27,7 +28,7 @@ def home(request):
         .filter(status__in=[Lobby.Status.ACTIVE, Lobby.Status.FULL])
     )
 
-    # --- НОВИЙ БЛОК ДЛЯ ПОШУКУ ПО НАЗВІ/ХОСТУ ---
+    # --- ПОШУК ПО НАЗВІ/ХОСТУ ---
     q = request.GET.get("q", "").strip()
     if q:
         qs = qs.filter(
@@ -35,10 +36,8 @@ def home(request):
             Q(game__name__icontains=q) | 
             Q(host__username__icontains=q)
         )
-    # ---------------------------------------------
 
     game = request.GET.get("game") or ""
-    # Optional filtering parameters
     country = request.GET.get("country") or ""
     role = request.GET.get("role") or ""
     mic = request.GET.get("mic") or ""
@@ -57,7 +56,6 @@ def home(request):
     if game:
         qs = qs.filter(game__slug=game)
         
-        # Apply game specific filters only if the main game is selected
         if game == "cs2":
             try:
                 if cs2_faceit_min:
@@ -92,7 +90,7 @@ def home(request):
 
     # Pagination
     qs = qs.order_by("-created_at")
-    paginator = Paginator(qs, 12) # 12 per page
+    paginator = Paginator(qs, 12) 
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
@@ -102,17 +100,13 @@ def home(request):
             qs.filter(participants__user=request.user).values_list("id", flat=True)
         )
 
-    # Prepare roles dictionary for the frontend
     roles_dict = {}
     for g in game_choices:
         roles_dict[g.slug] = Lobby.required_role_choices_for_game(g.slug)
 
-    # Рахуємо реальні дані з БД
     total_users = User.objects.count()
     total_lobbies = Lobby.objects.filter(status__in=[Lobby.Status.ACTIVE, Lobby.Status.FULL]).count()
-
     upcoming_tournaments = Tournament.objects.filter(is_active=True, date_time__gte=timezone.now()).order_by('date_time')[:3]
-
     hot_lobbies = Lobby.objects.select_related("host", "game").filter(status=Lobby.Status.ACTIVE).order_by('-created_at')[:2]
 
     context = {
@@ -129,12 +123,11 @@ def home(request):
         "total_users": total_users,
         "total_lobbies": total_lobbies,
         "upcoming_tournaments": upcoming_tournaments,
-        "hot_lobbies": hot_lobbies, # Тепер Python побачить цю змінну!
+        "hot_lobbies": hot_lobbies, 
     }
+    
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        # Render the lobby list items
         html = render_to_string("lobbies/partials/lobby_list.html", context, request=request)
-        # Render the pagination controls
         pagination_html = render_to_string("lobbies/partials/pagination.html", context, request=request)
         return JsonResponse({
             "html": html, 
@@ -144,26 +137,19 @@ def home(request):
 
     return render(request, "home.html", context)
 
-# ... ТУТ ДАЛІ ТВІЙ КОД ТУРНІРІВ І ДРУЗІВ (ЯКИЙ БУВ) ...
-
 
 def tournaments_list(request):
     """
     Tournaments Page: list upcoming and ongoing tournaments with AJAX filtering.
     """
-    # 1. Отримуємо всі ігри для фільтру
     game_choices = Game.objects.filter(is_active=True).order_by('order')
-    
-    # 2. Отримуємо всі турніри
     qs = Tournament.objects.filter(is_active=True).select_related('game')
     
-    # 3. Фільтрація по грі
     game_slug = request.GET.get("game")
     if game_slug:
         qs = qs.filter(game__slug=game_slug)
         
-    # 4. Фільтрація по статусу (Upcoming, Past)
-    status_filter = request.GET.get("status", "upcoming") # За замовчуванням Upcoming
+    status_filter = request.GET.get("status", "upcoming")
     now = timezone.now()
     
     if status_filter == "upcoming":
@@ -171,7 +157,6 @@ def tournaments_list(request):
     elif status_filter == "past":
         qs = qs.filter(date_time__lt=now)
         
-    # 5. Пошук
     search_query = request.GET.get("search")
     if search_query:
         qs = qs.filter(title__icontains=search_query)
@@ -183,40 +168,137 @@ def tournaments_list(request):
         "current_status": status_filter
     }
 
-    # Якщо це AJAX запит (HTMX), повертаємо тільки сітку з турнірами
     if request.headers.get('HX-Request'):
         return render(request, "tournaments/partials/tournament_grid.html", context)
 
-    # Якщо це звичайне завантаження, повертаємо всю сторінку
     return render(request, "tournaments/tournament_list.html", context)
 
 
+# ==========================================
+# ❗ ГЛОБАЛЬНИЙ ПОШУК
+# ==========================================
+def search_results(request):
+    """
+    Global Search Page: Finds users by username and active lobbies by title/game.
+    """
+    query = request.GET.get('q', '').strip()
+    
+    users = []
+    lobbies = []
+    
+    if query:
+        # 1. Шукаємо юзерів (по username), виключаємо самого себе
+        users_qs = User.objects.filter(username__icontains=query)
+        if request.user.is_authenticated:
+            users_qs = users_qs.exclude(id=request.user.id)
+        users = users_qs[:20]  # Ліміт 20 юзерів, щоб не грузити базу
+        
+        # 2. Шукаємо активні лобі (по title або по назві гри)
+        lobbies = Lobby.objects.filter(
+            Q(title__icontains=query) | Q(game__name__icontains=query),
+            status=Lobby.Status.ACTIVE
+        ).select_related('game', 'host')[:20] # Ліміт 20 сквадів
+        
+    context = {
+        'query': query,
+        'users': users,
+        'lobbies': lobbies,
+    }
+    return render(request, 'search_results.html', context)
+
+
 def tournament_detail(request, pk):
-    """
-    Сторінка деталей конкретного турніру
-    """
+    """Сторінка деталей конкретного турніру"""
     tournament = get_object_or_404(Tournament, pk=pk)
     return render(request, "tournaments/tournament_detail.html", {"tournament": tournament})
 
 
 # ==========================================
-# СИСТЕМА ДРУЗІВ (FRIENDS SYSTEM)
+# СИСТЕМА ДРУЗІВ (FRIENDS SYSTEM) ТА ПУБЛІЧНИЙ ПРОФІЛЬ
 # ==========================================
+
+# ❗ НОВА ФУНКЦІЯ ПЕРЕГЛЯДУ ЧУЖОГО ПРОФІЛЮ
+@login_required
+def public_profile(request, username):
+    """Сторінка публічного профілю іншого гравця"""
+    target_user = get_object_or_404(User, username=username)
+    
+    # Якщо юзер клікнув на свій власний профіль в пошуку — кидаємо його на його приватну сторінку
+    if request.user == target_user:
+        return redirect('profile')
+        
+    profile = target_user.gamer_profile
+    
+    # Перевіряємо статус дружби
+    is_friend = request.user.gamer_profile.friends.filter(id=profile.id).exists()
+    
+    # Перевіряємо, чи є вже відправлені або отримані запити
+    request_sent = FriendRequest.objects.filter(from_user=request.user, to_user=target_user, status='pending').exists()
+    request_received = FriendRequest.objects.filter(from_user=target_user, to_user=request.user, status='pending').first()
+    
+    # Рахуємо статистику для відображення
+    hosted_count = target_user.hosted_lobbies.count()
+    joined_count = target_user.lobby_participations.count()
+    
+    context = {
+        'target_user': target_user,
+        'profile': profile,
+        'is_friend': is_friend,
+        'request_sent': request_sent,
+        'request_received': request_received,
+        'stats': {'hosted': hosted_count, 'joined': joined_count},
+    }
+    return render(request, 'users/public_profile.html', context)
+@login_required
+def direct_chat(request, username):
+    """Приватний чат між двома друзями"""
+    other_user = get_object_or_404(User, username=username)
+
+    # 1. Захист: чи вони дійсно друзі?
+    is_friend = request.user.gamer_profile.friends.filter(id=other_user.gamer_profile.id).exists()
+    if not is_friend:
+        messages.error(request, "You can only message your friends.")
+        return redirect('public_profile', username=username)
+
+    # 2. Якщо відправили нове повідомлення
+    if request.method == 'POST':
+        content = request.POST.get('content', '').strip()
+        if content:
+            DirectMessage.objects.create(
+                sender=request.user,
+                receiver=other_user,
+                content=content
+            )
+
+    # 3. Отримуємо всю історію переписки
+    chat_messages = DirectMessage.objects.filter(
+        Q(sender=request.user, receiver=other_user) |
+        Q(sender=other_user, receiver=request.user)
+    ).order_by('created_at')
+
+    # Позначаємо вхідні повідомлення як прочитані
+    chat_messages.filter(receiver=request.user, is_read=False).update(is_read=True)
+
+    context = {
+        'other_user': other_user,
+        'chat_messages': chat_messages,
+    }
+    return render(request, 'users/chat.html', context)
+
+
 
 @login_required
 def friends_view(request):
     """Головна сторінка друзів"""
     profile = request.user.gamer_profile
-    # Отримуємо підтверджених друзів
     friends = profile.friends.all()
-    # Отримуємо вхідні запити
     incoming_requests = request.user.received_friend_requests.filter(status='pending')
     
-    # Пошук користувачів
+    sent_requests_ids = request.user.sent_friend_requests.filter(status='pending').values_list('to_user_id', flat=True)
+    
     search_query = request.GET.get('q', '')
     search_results = []
     if search_query:
-        # Шукаємо по імені, виключаючи самого себе
         search_results = User.objects.filter(username__icontains=search_query).exclude(id=request.user.id)
 
     context = {
@@ -224,6 +306,7 @@ def friends_view(request):
         'incoming_requests': incoming_requests,
         'search_results': search_results,
         'search_query': search_query,
+        'sent_requests_ids': sent_requests_ids,
     }
     return render(request, 'users/friends.html', context)
 
@@ -232,40 +315,49 @@ def send_friend_request(request, user_id):
     """Надіслати запит у друзі"""
     to_user = get_object_or_404(User, id=user_id)
     
-    # Перевірка: чи не додаємо самі себе
     if request.user == to_user:
-        messages.warning(request, "You cannot add yourself as a friend.")
+        messages.warning(request, "You cannot add yourself.")
         return redirect('friends')
     
-    # Перевірка: чи вже в друзях
     if request.user.gamer_profile.friends.filter(id=to_user.gamer_profile.id).exists():
-        messages.warning(request, "This user is already in your friends list!")
+        messages.warning(request, "This user is already your friend!")
         return redirect('friends')
         
     freq, created = FriendRequest.objects.get_or_create(
         from_user=request.user, 
-        to_user=to_user, 
-        defaults={'status': 'pending'}
+        to_user=to_user
     )
     
-    if created:
-        messages.success(request, f"Friend request sent to {to_user.username}!")
-    else:
-        messages.info(request, "A friend request was already sent to this user.")
+    if freq.status != 'pending':
+        freq.status = 'pending'
+        freq.save()
         
-    return redirect('friends')
+    messages.success(request, f"Friend request sent to {to_user.username}!")
+    return redirect(request.META.get('HTTP_REFERER', 'friends'))
 
 @login_required
 def accept_friend_request(request, request_id):
-    """Прийняти запит у друзі"""
+    """Прийняти запит у друзі та надіслати сповіщення"""
     freq = get_object_or_404(FriendRequest, id=request_id, to_user=request.user, status='pending')
     freq.status = 'accepted'
     freq.save()
     
-    # Додаємо профілі один одному в друзі
     request.user.gamer_profile.friends.add(freq.from_user.gamer_profile)
+    
+    Notification.objects.create(
+        recipient=freq.from_user,
+        notification_type='system',
+        message=f"{request.user.username} accepted your friend request! You are now friends."
+    )
+
+    Notification.objects.create(
+        recipient=request.user,
+        notification_type='system',
+        message=f"You and {freq.from_user.username} are now friends!"
+    )
+
     messages.success(request, f"You and {freq.from_user.username} are now friends!")
-    return redirect('friends')
+    return redirect(request.META.get('HTTP_REFERER', 'home'))
 
 @login_required
 def reject_friend_request(request, request_id):
@@ -274,7 +366,7 @@ def reject_friend_request(request, request_id):
     freq.status = 'rejected'
     freq.save()
     messages.info(request, "Friend request declined.")
-    return redirect('friends')
+    return redirect(request.META.get('HTTP_REFERER', 'home'))
     
 @login_required
 def remove_friend(request, user_id):
@@ -282,20 +374,19 @@ def remove_friend(request, user_id):
     friend_user = get_object_or_404(User, id=user_id)
     request.user.gamer_profile.friends.remove(friend_user.gamer_profile)
     messages.success(request, f"{friend_user.username} removed from your friends.")
-    return redirect('friends')
+    return redirect(request.META.get('HTTP_REFERER', 'friends'))
 
 @login_required
 def get_notifications(request):
-    # Отримуємо всі непрочитані сповіщення для юзера (інвайти в лобі тощо)
+    """HTML для дзвіночка та тоастів"""
     notifications = Notification.objects.filter(recipient=request.user, is_read=False).order_by('-created_at')
-    
-    # ДОДАЄМО: Отримуємо всі вхідні запити в друзі, які ще 'pending'
     friend_requests = FriendRequest.objects.filter(to_user=request.user, status='pending').order_by('-created_at')
     
     return render(request, "lobbies/partials/notifications.html", {
         "notifications": notifications,
-        "friend_requests": friend_requests, # Передаємо в шаблон!
+        "friend_requests": friend_requests,
     })
+
 @login_required
 def get_lobby_players(request, lobby_id):
     """Повертає тільки HTML-шматочок зі списком гравців для HTMX-оновлення"""
@@ -305,5 +396,26 @@ def get_lobby_players(request, lobby_id):
     return render(request, "lobbies/partials/lobby_players.html", {
         "lobby": lobby,
         "is_participant": is_participant,
-        "is_htmx": True,  # ❗ ДОДАЛИ ЦЕЙ РЯДОК
+        "is_htmx": True,  
     })
+
+# ==========================================
+# ❗ ФУНКЦІЯ ЗАПРОШЕННЯ В ЛОБІ ❗
+# ==========================================
+@login_required
+def invite_to_lobby(request, lobby_id, user_id):
+    """Запросити друга у своє лобі"""
+    lobby = get_object_or_404(Lobby, id=lobby_id)
+    target_user = get_object_or_404(User, id=user_id)
+    
+    # Створюємо сповіщення для друга
+    Notification.objects.create(
+        recipient=target_user,
+        sender=request.user,
+        notification_type='lobby_invite',
+        lobby_id=lobby.id,
+        message=f"{request.user.username} invited you to join squad: {getattr(lobby, 'title', getattr(lobby, 'name', 'Lobby'))}" 
+    )
+    
+    messages.success(request, f"Invite sent to {target_user.username}!")
+    return redirect(request.META.get('HTTP_REFERER', 'home'))

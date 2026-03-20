@@ -102,21 +102,27 @@
             </div>
             
             <div class="lc-players-avatars">
-                <div class="lc-avatar-container host">
+                <div class="lc-avatar-container host" style="z-index: 10;">
                     <img src="https://ui-avatars.com/api/?name={{ lobby.host.username|urlencode }}&background=0f172a&color=00f0ff" alt="Host">
                     <span class="lc-avatar-badge">H</span>
                 </div>
                 
-                {% for participant in lobby.participants.all|slice:":3" %}
+                {% for participant in lobby.participants.all|slice:":4" %}
                     {% if participant.user != lobby.host %}
-                    <div class="lc-avatar-container">
+                    <div class="lc-avatar-container" style="z-index: {{ 9|add:'-'|add:forloop.counter }};">
                         <img src="https://ui-avatars.com/api/?name={{ participant.user.username|urlencode }}&background=1e293b&color=fff" alt="Player">
                     </div>
                     {% endif %}
                 {% endfor %}
 
-                {% if lobby.slots_total > lobby.slots_filled %}
-                <div class="lc-avatar-container empty">
+                {% if lobby.slots_filled > 4 %}
+                <div class="lc-avatar-container extra-players" style="z-index: 1;">
+                    +{{ lobby.slots_filled|add:"-4" }}
+                </div>
+                {% endif %}
+
+                {% if lobby.slots_total > lobby.slots_filled and lobby.slots_filled < 4 %}
+                <div class="lc-avatar-container empty" style="z-index: 1;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </div>
                 {% endif %}
@@ -343,6 +349,18 @@
         justify-content: center;
         border: 2px dashed var(--border-slate, #334155);
         color: var(--text-muted, #94a3b8);
+        z-index: 1;
+    }
+
+    /* СТИЛЬ ДЛЯ КРУЖЕЧКА +X (ДОДАНИЙ) */
+    .lc-avatar-container.extra-players {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 800;
         z-index: 1;
     }
 
