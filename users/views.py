@@ -17,7 +17,7 @@ def register_view(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
             messages.success(request, "Welcome to SquadUp! Your account is ready.")
             return redirect("profile_edit")
     else:
@@ -96,11 +96,11 @@ def read_notification(request, notif_id):
     notif = get_object_or_404(Notification, id=notif_id, recipient=request.user)
     notif.is_read = True
     notif.save()
-    
+
     # Якщо ми натиснули Accept, в URL буде ?lobby=...
-    lobby_id = request.GET.get('lobby')
+    lobby_id = request.GET.get("lobby")
     if lobby_id:
-        return redirect('lobby_detail', lobby_id) # Перекидаємо в лобі!
-        
+        return redirect("lobby_detail", lobby_id)  # Перекидаємо в лобі!
+
     # Якщо ми натиснули Dismiss - просто оновлюємо сторінку і залишаємось на місці
-    return redirect(request.META.get('HTTP_REFERER', 'home'))
+    return redirect(request.META.get("HTTP_REFERER", "home"))

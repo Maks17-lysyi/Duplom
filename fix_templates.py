@@ -1,7 +1,7 @@
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 
 HOME_HTML = r"""{% extends "base.html" %}
 
@@ -302,13 +302,13 @@ LOBBY_DETAIL_HTML = r"""{% extends "base.html" %}
 {% endblock %}
 """
 
-home_path = os.path.join(TEMPLATES_DIR, 'home.html')
-lobby_detail_path = os.path.join(TEMPLATES_DIR, 'lobbies', 'lobby_detail.html')
+home_path = os.path.join(TEMPLATES_DIR, "home.html")
+lobby_detail_path = os.path.join(TEMPLATES_DIR, "lobbies", "lobby_detail.html")
 
-with open(home_path, 'w', encoding='utf-8') as f:
+with open(home_path, "w", encoding="utf-8") as f:
     f.write(HOME_HTML)
 print(f"Updated {home_path}")
 
-with open(lobby_detail_path, 'w', encoding='utf-8') as f:
+with open(lobby_detail_path, "w", encoding="utf-8") as f:
     f.write(LOBBY_DETAIL_HTML)
 print(f"Updated {lobby_detail_path}")

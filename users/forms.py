@@ -62,11 +62,13 @@ class GamerProfileForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
         # 1. Робимо список ігор динамічним (беремо з БД)
-        if 'main_game' in self.fields:
-            self.fields['main_game'].queryset = Game.objects.filter(is_active=True).order_by('order')
-            self.fields['main_game'].empty_label = "--- Any Game / Not set ---"
+        if "main_game" in self.fields:
+            self.fields["main_game"].queryset = Game.objects.filter(is_active=True).order_by(
+                "order"
+            )
+            self.fields["main_game"].empty_label = "--- Any Game / Not set ---"
 
         # 2. Обмежуємо ролі залежно від вибраної гри
         game_slug = None
@@ -102,16 +104,16 @@ class GamerProfileForm(forms.ModelForm):
 
     def clean_role(self):
         role = self.cleaned_data.get("role") or ""
-        game_obj = self.cleaned_data.get("main_game") # Тепер це об'єкт моделі Game
+        game_obj = self.cleaned_data.get("main_game")  # Тепер це об'єкт моделі Game
 
         if not role:
             return ""
-            
+
         # Отримуємо slug гри для перевірки ролей (або None, якщо гру не вибрано)
         game_slug = game_obj.slug if game_obj else None
-        
+
         allowed_values = {v for v, _ in GamerProfile.role_choices_for_game(game_slug)}
-        
+
         if role not in allowed_values:
             raise forms.ValidationError("Role must match the selected game.")
         return role

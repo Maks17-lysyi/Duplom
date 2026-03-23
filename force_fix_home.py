@@ -154,7 +154,7 @@ HOME_CONTENT = r"""{% extends "base.html" %}
 """
 
 path = r"c:\Users\Bosco\Desktop\Party_Finder\templates\home.html"
-with open(path, 'w', encoding='utf-8') as f:
+with open(path, "w", encoding="utf-8") as f:
     f.write(HOME_CONTENT)
 
 print(f"Force updated {path}")

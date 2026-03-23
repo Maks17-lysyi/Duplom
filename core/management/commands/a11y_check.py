@@ -37,9 +37,7 @@ class Command(BaseCommand):
             return
 
         css = css_path.read_text(encoding="utf-8", errors="ignore")
-        vars_found = dict(
-            re.findall(r"--([a-zA-Z0-9\-_]+)\s*:\s*(#[0-9a-fA-F]{3,6})\s*;", css)
-        )
+        vars_found = dict(re.findall(r"--([a-zA-Z0-9\-_]+)\s*:\s*(#[0-9a-fA-F]{3,6})\s*;", css))
 
         needed = {
             "text": vars_found.get("text"),
@@ -51,9 +49,7 @@ class Command(BaseCommand):
 
         missing = [k for k, v in needed.items() if not v]
         if missing:
-            self.stderr.write(
-                self.style.WARNING(f"Could not find CSS vars: {', '.join(missing)}")
-            )
+            self.stderr.write(self.style.WARNING(f"Could not find CSS vars: {', '.join(missing)}"))
 
         pairs = [
             ("text on surface", needed["text"], needed["surface"], 4.5),

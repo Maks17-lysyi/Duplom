@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
+
 class Game(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100, unique=True)
@@ -59,7 +60,7 @@ class Lobby(models.Model):
         ACTIVE = "active", "Active"
         FULL = "full", "Full"
         ENDED = "ended", "Ended"
-    
+
     class PlayStyle(models.TextChoices):
         COMPETITIVE = "competitive", "Competitive / Ranked"
         FOR_FUN = "fun", "For Fun / Casual"
@@ -103,12 +104,20 @@ class Lobby(models.Model):
         "dbd": {"looper", "gen_rusher", "healer", "flex"},
     }
 
-    host = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="hosted_lobbies")
+    host = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="hosted_lobbies"
+    )
     title = models.CharField(max_length=120)
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="lobbies", null=True)
-    play_style = models.CharField(max_length=16, choices=PlayStyle.choices, default=PlayStyle.COMPETITIVE)
-    required_rank = models.CharField(max_length=16, choices=RequiredRank.choices, default=RequiredRank.ANY)
-    required_role = models.CharField(max_length=16, choices=RequiredRole.choices, default=RequiredRole.ANY)
+    play_style = models.CharField(
+        max_length=16, choices=PlayStyle.choices, default=PlayStyle.COMPETITIVE
+    )
+    required_rank = models.CharField(
+        max_length=16, choices=RequiredRank.choices, default=RequiredRank.ANY
+    )
+    required_role = models.CharField(
+        max_length=16, choices=RequiredRole.choices, default=RequiredRole.ANY
+    )
     country = models.CharField(max_length=64, blank=True)
 
     # ❗ ОНОВЛЕНІ ПОЛЯ ДЛЯ CS2 (З ВАЛІДАТОРАМИ ТА ELO) ❗
@@ -118,20 +127,30 @@ class Lobby(models.Model):
     req_cs2_faceit_lvl_max = models.PositiveSmallIntegerField(
         null=True, blank=True, validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
-    req_cs2_faceit_elo_min = models.PositiveIntegerField(null=True, blank=True, verbose_name="Min Faceit ELO")
-    req_cs2_faceit_elo_max = models.PositiveIntegerField(null=True, blank=True, verbose_name="Max Faceit ELO")
-    
+    req_cs2_faceit_elo_min = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name="Min Faceit ELO"
+    )
+    req_cs2_faceit_elo_max = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name="Max Faceit ELO"
+    )
+
     req_cs2_premier_rating_min = models.PositiveIntegerField(null=True, blank=True)
     req_cs2_premier_rating_max = models.PositiveIntegerField(null=True, blank=True)
 
     # Others
-    req_valorant_rank = models.CharField(max_length=16, choices=ValorantRank.choices, default=ValorantRank.ANY)
-    req_dota2_rank = models.CharField(max_length=16, choices=Dota2Rank.choices, default=Dota2Rank.ANY)
+    req_valorant_rank = models.CharField(
+        max_length=16, choices=ValorantRank.choices, default=ValorantRank.ANY
+    )
+    req_dota2_rank = models.CharField(
+        max_length=16, choices=Dota2Rank.choices, default=Dota2Rank.ANY
+    )
     req_eafc_mode = models.CharField(max_length=16, choices=EafcMode.choices, default=EafcMode.ANY)
     req_dbd_role = models.CharField(max_length=16, choices=DbdRole.choices, default=DbdRole.ANY)
-    
+
     mic_required = models.BooleanField(default=False)
-    slots_total = models.PositiveSmallIntegerField(validators=[MinValueValidator(2), MaxValueValidator(10)], default=5)
+    slots_total = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(2), MaxValueValidator(10)], default=5
+    )
     slots_filled = models.PositiveSmallIntegerField(default=0, editable=False)
     description = models.TextField(blank=True)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.ACTIVE)
@@ -139,7 +158,9 @@ class Lobby(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["host"], condition=Q(status="active"), name="uniq_active_lobby_per_host")
+            models.UniqueConstraint(
+                fields=["host"], condition=Q(status="active"), name="uniq_active_lobby_per_host"
+            )
         ]
         ordering = ["-created_at"]
 
@@ -168,7 +189,9 @@ class Lobby(models.Model):
 
 class LobbyParticipant(models.Model):
     lobby = models.ForeignKey(Lobby, on_delete=models.CASCADE, related_name="participants")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="lobby_participations")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="lobby_participations"
+    )
     joined_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -180,6 +203,7 @@ class LobbyParticipant(models.Model):
     def __str__(self):
         return f"{self.user.username} in {self.lobby_id}"
 
+
 @receiver(post_save, sender=Lobby)
 def add_host_as_participant(sender, instance: Lobby, created: bool, **kwargs):
     if not created:
@@ -187,14 +211,17 @@ def add_host_as_participant(sender, instance: Lobby, created: bool, **kwargs):
     LobbyParticipant.objects.get_or_create(lobby=instance, user=instance.host)
     instance.recalc_slots()
 
+
 @receiver(post_save, sender=LobbyParticipant)
 def update_lobby_slots_on_join(sender, instance: LobbyParticipant, created: bool, **kwargs):
     if created:
         instance.lobby.recalc_slots()
 
+
 @receiver(post_delete, sender=LobbyParticipant)
 def update_lobby_slots_on_leave(sender, instance: LobbyParticipant, **kwargs):
     instance.lobby.recalc_slots()
+
 
 class ChatMessage(models.Model):
     lobby = models.ForeignKey(Lobby, on_delete=models.CASCADE, related_name="messages")
@@ -210,28 +237,38 @@ class ChatMessage(models.Model):
 
 
 class Tournament(models.Model):
-    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="tournaments", verbose_name="Гра")
-    
+    game = models.ForeignKey(
+        Game, on_delete=models.CASCADE, related_name="tournaments", verbose_name="Гра"
+    )
+
     title = models.CharField(max_length=200, verbose_name="Заголовок турніру")
-    
+
     # НОВЕ ПОЛЕ ДЛЯ ЗАВАНТАЖЕННЯ ФАЙЛІВ КАРТИНОК
-    image = models.ImageField(upload_to='tournaments/covers/', blank=True, null=True, verbose_name="Зображення (Файл)")
-    
+    image = models.ImageField(
+        upload_to="tournaments/covers/", blank=True, null=True, verbose_name="Зображення (Файл)"
+    )
+
     # Старе поле для силок залишаємо
-    image_url = models.URLField(max_length=500, blank=True, null=True, verbose_name="Зображення (URL)") 
-    
-    format_type = models.CharField(max_length=100, verbose_name="Формат турніру", help_text="Наприклад: 5v5, 1v1, Double Elimination")
+    image_url = models.URLField(
+        max_length=500, blank=True, null=True, verbose_name="Зображення (URL)"
+    )
+
+    format_type = models.CharField(
+        max_length=100,
+        verbose_name="Формат турніру",
+        help_text="Наприклад: 5v5, 1v1, Double Elimination",
+    )
     date_time = models.DateTimeField(verbose_name="Дата та час проведення")
     details = models.TextField(verbose_name="Деталі та формат")
     rules = models.TextField(verbose_name="Правила")
     prize = models.CharField(max_length=200, verbose_name="Приз")
     contacts = models.CharField(max_length=200, verbose_name="Контакти (Discord, Telegram тощо)")
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True, verbose_name="Активний")
 
     class Meta:
-        ordering = ['-date_time']
+        ordering = ["-date_time"]
         verbose_name = "Турнір"
         verbose_name_plural = "Турніри"
 

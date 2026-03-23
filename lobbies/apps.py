@@ -2,5 +2,5 @@ from django.apps import AppConfig
 
 
 class LobbiesConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'lobbies'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "lobbies"

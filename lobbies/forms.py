@@ -18,9 +18,12 @@ CS2_PLATFORM_CHOICES = [
     ("fun", "For Fun (No requirements)"),
 ]
 
+
 class LobbyForm(forms.ModelForm):
     country = forms.ChoiceField(choices=COUNTRY_CHOICES, required=False)
-    cs2_platform_selector = forms.ChoiceField(choices=CS2_PLATFORM_CHOICES, required=False, label="Platform")
+    cs2_platform_selector = forms.ChoiceField(
+        choices=CS2_PLATFORM_CHOICES, required=False, label="Platform"
+    )
 
     class Meta:
         model = Lobby
@@ -47,13 +50,17 @@ class LobbyForm(forms.ModelForm):
             "description": forms.Textarea(attrs={"rows": 4}),
             "req_cs2_faceit_lvl_min": forms.NumberInput(attrs={"placeholder": "Min (e.g. 3)"}),
             "req_cs2_faceit_lvl_max": forms.NumberInput(attrs={"placeholder": "Max (e.g. 7)"}),
-            "req_cs2_premier_rating_min": forms.NumberInput(attrs={"placeholder": "Min (e.g. 10000)"}),
-            "req_cs2_premier_rating_max": forms.NumberInput(attrs={"placeholder": "Max (e.g. 15000)"}),
+            "req_cs2_premier_rating_min": forms.NumberInput(
+                attrs={"placeholder": "Min (e.g. 10000)"}
+            ),
+            "req_cs2_premier_rating_max": forms.NumberInput(
+                attrs={"placeholder": "Max (e.g. 15000)"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
         game = None
         if self.is_bound:
             game = self.data.get("game") or None
@@ -67,7 +74,17 @@ class LobbyForm(forms.ModelForm):
         for name, field in self.fields.items():
             if name == "description":
                 field.widget.attrs.setdefault("class", "squadup-input-neon w-100")
-            elif name in {"game", "country", "play_style", "required_role", "req_valorant_rank", "req_dota2_rank", "req_eafc_mode", "req_dbd_role", "cs2_platform_selector"}:
+            elif name in {
+                "game",
+                "country",
+                "play_style",
+                "required_role",
+                "req_valorant_rank",
+                "req_dota2_rank",
+                "req_eafc_mode",
+                "req_dbd_role",
+                "cs2_platform_selector",
+            }:
                 field.widget.attrs.setdefault("class", "squadup-select-neon w-100")
             elif name == "mic_required":
                 field.widget.attrs.setdefault("class", "form-check-input toggle-input d-none")
@@ -78,21 +95,21 @@ class LobbyForm(forms.ModelForm):
         role = self.cleaned_data.get("required_role") or "any"
         if role == "any":
             return "any"
-            
+
         game = self.cleaned_data.get("game")
         if not game:
-             return role
-             
+            return role
+
         allowed_values = {v for v, _ in Lobby.required_role_choices_for_game(game.slug)}
-        
+
         if role not in allowed_values:
             raise forms.ValidationError("Вибрана роль не підходить для цієї гри.")
-            
+
         return role
 
     def clean(self):
         cleaned_data = super().clean()
-        
+
         f_min = cleaned_data.get("req_cs2_faceit_lvl_min")
         f_max = cleaned_data.get("req_cs2_faceit_lvl_max")
         if f_min and f_max and f_min > f_max:
@@ -101,6 +118,8 @@ class LobbyForm(forms.ModelForm):
         p_min = cleaned_data.get("req_cs2_premier_rating_min")
         p_max = cleaned_data.get("req_cs2_premier_rating_max")
         if p_min and p_max and p_min > p_max:
-            self.add_error("req_cs2_premier_rating_max", "Max rating cannot be less than Min rating.")
+            self.add_error(
+                "req_cs2_premier_rating_max", "Max rating cannot be less than Min rating."
+            )
 
         return cleaned_data
