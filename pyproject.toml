@@ -9,19 +9,15 @@ include = '\.pyi?$'
 exclude = '''
 /(
     \.git
-
   | \.hg
   | \.mypy_cache
   | \.nox
-
   | \.tox
   | \.venv
   | venv
-
   | _build
   | buck-out
   | build
-
   | dist
   | __pypackages__
   | migrations
