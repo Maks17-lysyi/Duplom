@@ -1,6 +1,6 @@
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "squadup.settings"
-python_files = ["test_*.py"]
+python_files = ["test_*.py", "*_test.py", "tests.py"]
 
 [tool.black]
 line-length = 100
