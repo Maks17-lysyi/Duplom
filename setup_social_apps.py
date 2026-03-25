@@ -1,10 +1,12 @@
 import os
+
 import django
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "squadup.settings")
 django.setup()
 
 from django.contrib.sites.models import Site
+
 from allauth.socialaccount.models import SocialApp
 
 

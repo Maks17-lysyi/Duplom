@@ -1,5 +1,10 @@
 from django.contrib import admin
-from .models import Game, Lobby, Tournament  # Переконайтеся, що всі ваші моделі імпортовані
+
+from .models import (  # Переконайтеся, що всі ваші моделі імпортовані
+    Game,
+    Lobby,
+    Tournament,
+)
 
 
 # Якщо ви ще не реєстрували Game, додайте це:
