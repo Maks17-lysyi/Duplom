@@ -21,7 +21,9 @@ class SquadUpUsersTests(TestCase):
         self.user2 = User.objects.create_user(username="S1mple", password="testpassword123")
 
         # Створюємо гру для тестів
-        self.cs2 = Game.objects.create(name="Counter-Strike 2", slug="cs2", is_active=True, order=1)
+        self.cs2, created = Game.objects.get_or_create(
+            slug="cs2", defaults={"name": "Counter-Strike 2", "is_active": True, "order": 1}
+        )
 
     def test_gamer_profile_display_rank(self):
         """
