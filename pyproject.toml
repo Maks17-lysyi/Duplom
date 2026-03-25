@@ -23,3 +23,19 @@ exclude = '''
   | migrations
 )/
 '''
+[tool.coverage.run]
+omit = [
+    "*/migrations/*",
+    "manage.py",
+    "squadup/asgi.py",
+    "squadup/wsgi.py",
+    "fix_*.py",
+    "force_fix_*.py",
+    "setup_*.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __str__",
+]
