@@ -1,0 +1,435 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit Profile • SquadUp{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    
+    <div class="mb-4">
+        <h2 class="mb-1 fw-bold text-white">Edit Profile</h2>
+        <div class="text-secondary">Keep your contact & game info up to date.</div>
+    </div>
+
+    <div class="card squadup-profile-card">
+      <div class="card-body p-4 p-md-5">
+
+        {% if user_form.errors or profile_form.errors %}
+        <div class="alert alert-danger p-3 mb-4" style="background: rgba(255, 68, 68, 0.1); border: 1px solid #ff4444; border-radius: 12px;">
+            <h6 class="text-danger fw-bold mb-2 d-flex align-items-center gap-2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                Form Validation Errors:
+            </h6>
+            <ul class="mb-0 text-white small">
+                {% for field in user_form %}
+                    {% for error in field.errors %}
+                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for field in profile_form %}
+                    {% for error in field.errors %}
+                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in user_form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                {% for error in profile_form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post" class="vstack gap-4" id="profile-form">
+          {% csrf_token %}
+
+          <div class="p-4 rounded-3" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
+              <h6 class="text-muted text-uppercase fw-bold mb-3" style="letter-spacing: 1px; font-size: 0.8rem;">Contact Info</h6>
+              <div class="mb-3">
+                <label class="form-label text-muted small fw-bold text-uppercase">Email</label>
+                {{ user_form.email }}
+              </div>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label text-muted small fw-bold text-uppercase">Steam ID</label>
+                  {{ profile_form.steam_id }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label text-muted small fw-bold text-uppercase">Discord ID</label>
+                  {{ profile_form.discord_id }}
+                </div>
+              </div>
+          </div>
+
+          <div class="p-4 rounded-3" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
+              <h6 class="text-muted text-uppercase fw-bold mb-3" style="letter-spacing: 1px; font-size: 0.8rem;">Gaming Profile</h6>
+              <div class="row g-3 align-items-center">
+                <div class="col-md-6">
+                  <label class="form-label text-white small fw-bold text-uppercase">Main Game</label>
+                  {{ profile_form.main_game }}
+                </div>
+                <div class="col-md-6 mt-md-4 pt-md-2">
+                  <label class="form-label text-muted small fw-bold text-uppercase">Role</label>
+                  {{ profile_form.role }}
+                </div>
+                <div class="col-md-12 mt-3">
+                  <label class="form-label text-muted small fw-bold text-uppercase">Nationality (Country)</label>
+                  {{ profile_form.country }}
+                </div>
+              </div>
+
+              <div id="game-specific-container" class="game-specific-box p-4 mt-4 d-none">
+                  <h6 class="text-white fw-bold mb-3 d-flex align-items-center gap-2" style="font-size: 0.85rem;">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00ff94" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                      GAME SPECIFIC SETTINGS
+                  </h6>
+
+                  <div class="specific-fields group-cs2 d-none">
+                      <div class="row g-3">
+                        
+                        <div class="col-md-12">
+                            <label class="form-label" style="color: #f59e0b; font-size: 0.75rem; font-weight: 700;">Platform</label>
+                            <select id="cs2-platform-select" class="form-select custom-squad-input">
+                                <option value="">--- Select Platform ---</option>
+                                <option value="faceit">Faceit</option>
+                                <option value="premier">Premier</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 cs2-faceit d-none">
+                          <label class="form-label text-info small fw-bold text-uppercase">Faceit Level (1-10)</label>
+                          {{ profile_form.cs2_faceit_lvl }}
+                        </div>
+                        <div class="col-md-6 cs2-faceit d-none">
+                          <label class="form-label text-info small fw-bold text-uppercase">Faceit ELO</label>
+                          {{ profile_form.cs2_faceit_elo }}
+                        </div>
+
+                        <div class="col-md-12 cs2-faceit d-none">
+                            <span id="faceit-error" class="small fw-bold d-none" style="letter-spacing: 0.5px;"></span>
+                        </div>
+                        
+                        <div class="col-md-6 cs2-premier d-none">
+                          <label class="form-label text-warning small fw-bold text-uppercase">Premier Rating</label>
+                          {{ profile_form.cs2_premier_rating }}
+                        </div>
+
+                      </div>
+                  </div>
+
+                  <div class="specific-fields group-valorant d-none">
+                      <div class="row g-3">
+                        <div class="col-md-6">
+                          <label class="form-label text-danger small fw-bold text-uppercase">Valorant Rank</label>
+                          {{ profile_form.valorant_rank }}
+                        </div>
+                      </div>
+                  </div>
+
+                  <div class="specific-fields group-dota2 d-none">
+                      <div class="row g-3">
+                        <div class="col-md-6">
+                          <label class="form-label text-info small fw-bold text-uppercase">Dota 2 Rank / MMR</label>
+                          {{ profile_form.dota2_rank }}
+                        </div>
+                      </div>
+                  </div>
+              </div>
+              
+              <div class="row g-3 mt-3 pt-3 border-top" style="border-color: rgba(255,255,255,0.05) !important;">
+                <div class="col-md-12">
+                  <label class="form-label text-muted small fw-bold text-uppercase">Other Game Rank (If applicable)</label>
+                  {{ profile_form.rank }}
+                </div>
+              </div>
+          </div>
+
+          <div class="p-4 rounded-3" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05);">
+              <label class="form-label text-muted text-uppercase fw-bold mb-2" style="letter-spacing: 1px; font-size: 0.8rem;">About You (Bio)</label>
+              {{ profile_form.bio }}
+          </div>
+
+          <div class="d-flex align-items-center justify-content-between mt-2 pt-2 gap-3">
+            <button id="save-profile-btn" class="btn btn-neon-green flex-grow-1 py-3 fw-bold fs-5 text-uppercase" type="submit" style="border-radius: 12px; letter-spacing: 1px;">
+                SAVE PROFILE
+            </button>
+            <a class="btn btn-outline-neon-red py-3 px-5 fw-bold fs-5 text-uppercase" href="{% url 'profile' %}" style="border-radius: 12px; letter-spacing: 1px;">
+                BACK
+            </a>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+    .squadup-profile-card {
+        background: #0f172a;
+        border: 2px solid #00ff94; 
+        border-radius: 16px;
+        box-shadow: 0 0 20px rgba(0, 255, 148, 0.1);
+    }
+    .squadup-profile-card input, 
+    .squadup-profile-card select, 
+    .squadup-profile-card textarea,
+    .custom-squad-input {
+        background-color: rgba(0, 0, 0, 0.4) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important;
+        border-radius: 8px;
+        padding: 0.6rem 1rem;
+        transition: all 0.3s ease;
+    }
+    .squadup-profile-card input:focus, 
+    .squadup-profile-card select:focus, 
+    .squadup-profile-card textarea:focus,
+    .custom-squad-input:focus {
+        border-color: #00f0ff !important;
+        box-shadow: 0 0 10px rgba(0, 240, 255, 0.2) !important;
+        outline: none;
+    }
+    .squadup-profile-card select option,
+    .custom-squad-input option {
+        background-color: #0f172a !important; 
+        color: #ffffff !important;
+        padding: 10px;
+    }
+    .game-specific-box {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px dashed rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        transition: all 0.4s ease;
+    }
+    .smooth-show {
+        animation: smoothSlideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    @keyframes smoothSlideDown {
+        0% { opacity: 0; transform: translateY(-10px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    .btn-neon-green {
+        background: #00ff94;
+        color: #000;
+        border: none;
+        box-shadow: 0 0 15px rgba(0, 255, 148, 0.3);
+        transition: all 0.3s;
+    }
+    .btn-neon-green:hover:not(:disabled) {
+        background: #00e082;
+        box-shadow: 0 0 25px rgba(0, 255, 148, 0.5);
+        transform: translateY(-2px);
+        color: #000;
+    }
+    .btn-neon-green:disabled {
+        background: #334155;
+        color: #94a3b8;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+    .btn-outline-neon-red {
+        background: transparent;
+        color: #ff4444;
+        border: 2px solid #ff4444;
+        transition: all 0.3s;
+        text-decoration: none;
+    }
+    .btn-outline-neon-red:hover {
+        background: rgba(255, 68, 68, 0.1);
+        color: #ff6666;
+        border-color: #ff6666;
+        box-shadow: 0 0 15px rgba(255, 68, 68, 0.4);
+        transform: translateY(-2px);
+    }
+</style>
+
+<script>
+  (function () {
+    const gameEl = document.getElementById("{{ profile_form.main_game.id_for_label }}");
+    const roleEl = document.getElementById("{{ profile_form.role.id_for_label }}");
+    
+    const specificContainer = document.getElementById("game-specific-container");
+    const allSpecificGroups = document.querySelectorAll(".specific-fields");
+    const cs2PlatformSelect = document.getElementById("cs2-platform-select");
+    
+    const faceitLvlInput = document.getElementById("{{ profile_form.cs2_faceit_lvl.id_for_label }}");
+    const faceitEloInput = document.getElementById("{{ profile_form.cs2_faceit_elo.id_for_label }}");
+    const faceitError = document.getElementById("faceit-error");
+    const saveBtn = document.getElementById("save-profile-btn");
+    const profileForm = document.getElementById("profile-form");
+
+    function getExpectedFaceitLevel(elo) {
+        if (elo <= 800) return 1;
+        if (elo <= 950) return 2;
+        if (elo <= 1100) return 3;
+        if (elo <= 1250) return 4;
+        if (elo <= 1400) return 5;
+        if (elo <= 1550) return 6;
+        if (elo <= 1700) return 7;
+        if (elo <= 1850) return 8;
+        if (elo <= 2000) return 9;
+        return 10;
+    }
+
+    if (faceitLvlInput && faceitEloInput) {
+        faceitLvlInput.setAttribute("min", "1");
+        faceitLvlInput.setAttribute("max", "10");
+
+        faceitEloInput.addEventListener("input", function() {
+            let elo = parseInt(this.value);
+            if (!isNaN(elo) && elo > 0) {
+                let correctLvl = getExpectedFaceitLevel(elo);
+                faceitLvlInput.value = correctLvl;
+                
+                faceitError.textContent = `Level auto-synced to ${correctLvl} based on your ELO.`;
+                faceitError.className = "small fw-bold text-info"; 
+                faceitError.classList.remove('d-none');
+                
+                saveBtn.disabled = false;
+                faceitLvlInput.style.borderColor = "#00ff94";
+                faceitEloInput.style.borderColor = "#00ff94";
+            } else {
+                faceitError.classList.add("d-none");
+                saveBtn.disabled = false;
+                faceitLvlInput.style.borderColor = "";
+                faceitEloInput.style.borderColor = "";
+            }
+        });
+
+        faceitLvlInput.addEventListener("input", function() {
+            if (this.value > 10) this.value = 10;
+            if (this.value < 1 && this.value !== "") this.value = 1;
+
+            let elo = parseInt(faceitEloInput.value);
+            let lvl = parseInt(this.value);
+
+            if (!isNaN(elo) && !isNaN(lvl)) {
+                let correctLvl = getExpectedFaceitLevel(elo);
+                if (lvl !== correctLvl) {
+                    faceitError.textContent = `Hold up! ${elo} ELO is Level ${correctLvl}, not ${lvl}.`;
+                    faceitError.className = "small fw-bold text-danger";
+                    faceitError.classList.remove('d-none');
+                    
+                    saveBtn.disabled = true;
+                    this.style.borderColor = "#ff4444";
+                } else {
+                    faceitError.classList.add("d-none");
+                    saveBtn.disabled = false;
+                    this.style.borderColor = "#00ff94";
+                }
+            }
+        });
+        
+        profileForm.addEventListener('submit', function(event) {
+            if (saveBtn.disabled) {
+                event.preventDefault();
+                alert("Please fix the errors in your Faceit Stats before saving.");
+            }
+        });
+    }
+
+    if (!gameEl || !roleEl) return;
+
+    const roleMap = {
+      "cs2": [
+        ["entry", "Entry Fragger"], ["support", "Support"], ["igl", "IGL (In-Game Leader)"], ["awp", "AWP / Sniper"], ["lurk", "Lurker"], ["flex", "Flex"]
+      ],
+      "valorant": [
+        ["duelist", "Duelist"], ["initiator", "Initiator"], ["controller", "Controller"], ["sentinel", "Sentinel"], ["flex", "Flex"]
+      ],
+      "dota2": [
+        ["pos1", "Dota Pos 1 (Carry)"], ["pos2", "Dota Pos 2 (Mid)"], ["pos3", "Dota Pos 3 (Offlane)"], ["pos4", "Dota Pos 4 (Soft Support)"], ["pos5", "Dota Pos 5 (Hard Support)"]
+      ],
+    };
+
+    function rebuildRolesAndRanks() {
+      if (gameEl.selectedIndex === -1) return;
+      const selectedText = gameEl.options[gameEl.selectedIndex].text.toLowerCase();
+      let game = "";
+      
+      if (selectedText.includes("strike") || selectedText.includes("cs2")) {
+          game = "cs2";
+      } else if (selectedText.includes("valorant")) {
+          game = "valorant";
+      } else if (selectedText.includes("dota")) {
+          game = "dota2";
+      }
+
+      const currentRole = roleEl.value;
+      const options = roleMap[game] || [];
+      
+      roleEl.innerHTML = "";
+      const blank = document.createElement("option");
+      blank.value = "";
+      blank.textContent = "— Select Role —";
+      roleEl.appendChild(blank);
+
+      for (const [v, label] of options) {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = label;
+        roleEl.appendChild(opt);
+      }
+
+      const valid = new Set(options.map(o => o[0]));
+      roleEl.value = valid.has(currentRole) ? currentRole : "";
+
+      specificContainer.classList.add('d-none');
+      specificContainer.classList.remove('smooth-show');
+      
+      allSpecificGroups.forEach(group => {
+          group.classList.add('d-none');
+          group.classList.remove('smooth-show');
+      });
+
+      if (game) {
+          specificContainer.classList.remove('d-none');
+          void specificContainer.offsetWidth; 
+          specificContainer.classList.add('smooth-show');
+
+          const targetGroup = document.querySelector(`.group-${game}`);
+          if (targetGroup) {
+              targetGroup.classList.remove('d-none');
+              targetGroup.classList.add('smooth-show');
+          }
+      }
+    }
+
+    function rebuildCs2PlatformFields() {
+        if(!cs2PlatformSelect) return;
+        const platform = cs2PlatformSelect.value;
+        const faceitFields = document.querySelectorAll('.cs2-faceit');
+        const premierFields = document.querySelectorAll('.cs2-premier');
+        
+        faceitFields.forEach(el => { el.classList.add('d-none'); el.classList.remove('smooth-show'); });
+        premierFields.forEach(el => { el.classList.add('d-none'); el.classList.remove('smooth-show'); });
+        
+        if (platform === 'faceit') {
+            faceitFields.forEach(el => { 
+                el.classList.remove('d-none');
+                void el.offsetWidth;
+                el.classList.add('smooth-show');
+            });
+        } else if (platform === 'premier') {
+            premierFields.forEach(el => { 
+                el.classList.remove('d-none');
+                void el.offsetWidth;
+                el.classList.add('smooth-show');
+            });
+        }
+    }
+
+    gameEl.addEventListener("change", rebuildRolesAndRanks);
+    if (cs2PlatformSelect) {
+        cs2PlatformSelect.addEventListener("change", rebuildCs2PlatformFields);
+    }
+
+    rebuildRolesAndRanks();
+    rebuildCs2PlatformFields();
+    
+  })();
+</script>
+{% endblock %}

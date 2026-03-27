@@ -1,22 +1,47 @@
-{% for msg in messages %}
-<div class="mb-2 {% if msg.sender == user %}text-end{% endif %}">
-    <div class="d-inline-block p-2 rounded-3 text-break
-              {% if msg.sender == user %}
-                bg-primary text-white
-              {% else %}
-                bg-dark border border-secondary text-light
-              {% endif %}">
-        {% if msg.sender != user %}
-        <div class="small fw-bold text-info mb-1">{{ msg.sender.username }}</div>
+{% load static %}
+
+{% if has_new_messages %}
+    <audio autoplay src="{% static 'sounds/chat_receive.mp3' %}"></audio>
+{% endif %}
+
+<div style="display: flex; flex-direction: column; width: 100%; gap: 12px; padding-bottom: 10px;">
+    
+    {% for msg in messages %}
+        {% if msg.sender == user %}
+            <div style="align-self: flex-end; max-width: 85%;">
+                <div style="background-color: #00ff94; color: #000; padding: 10px 14px; border-radius: 16px 16px 4px 16px; font-weight: 600; word-break: break-word; box-shadow: 0 4px 10px rgba(0, 255, 148, 0.2);">
+                    {{ msg.content }}
+                </div>
+                <div style="font-size: 11px; color: #94a3b8; text-align: right; margin-top: 4px;">
+                    {{ msg.created_at|date:"H:i" }}
+                </div>
+            </div>
+        {% else %}
+            <div style="align-self: flex-start; max-width: 85%;">
+                <div style="font-size: 12px; color: #00f0ff; font-weight: bold; margin-bottom: 4px; padding-left: 4px;">
+                    {{ msg.sender.username }}
+                </div>
+                <div style="background-color: #1e293b; color: #fff; padding: 10px 14px; border-radius: 16px 16px 16px 4px; border: 1px solid rgba(255,255,255,0.1); word-break: break-word; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                    {{ msg.content }}
+                </div>
+                <div style="font-size: 11px; color: #94a3b8; text-align: left; margin-top: 4px; padding-left: 4px;">
+                    {{ msg.created_at|date:"H:i" }}
+                </div>
+            </div>
         {% endif %}
-        {{ msg.content }}
-    </div>
-    <div class="small text-muted mt-1" style="font-size: 0.7rem;">
-        {{ msg.created_at|date:"H:i" }}
-    </div>
+    {% empty %}
+        <div style="text-align: center; color: #64748b; padding: 30px; font-size: 14px; font-weight: 500;">
+            No messages yet. Say hello! 👋
+        </div>
+    {% endfor %}
+
 </div>
-{% empty %}
-<div class="text-center text-secondary small py-4">
-    No messages yet. Say hello!
-</div>
-{% endfor %}
+
+<script>
+    (function() {
+        var chatBox = document.getElementById('chat-box');
+        if (chatBox) {
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    })();
+</script>

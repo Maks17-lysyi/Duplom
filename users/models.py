@@ -11,26 +11,24 @@ from django.dispatch import receiver
 
 class GamerProfile(models.Model):
     class Role(models.TextChoices):
-        # CS2-ish
         ENTRY = "entry", "Entry"
         SUPPORT = "support", "Support"
         IGL = "igl", "IGL"
         AWP = "awp", "AWP / Sniper"
         LURK = "lurk", "Lurker"
         FLEX = "flex", "Flex"
-        # Valorant-ish
+     
         DUELIST = "duelist", "Duelist"
         INITIATOR = "initiator", "Initiator"
         CONTROLLER = "controller", "Controller"
         SENTINEL = "sentinel", "Sentinel"
-        # Dota positions
+      
         POS1 = "pos1", "Dota Pos 1 (Carry)"
         POS2 = "pos2", "Dota Pos 2 (Mid)"
         POS3 = "pos3", "Dota Pos 3 (Offlane)"
         POS4 = "pos4", "Dota Pos 4 (Soft Support)"
         POS5 = "pos5", "Dota Pos 5 (Hard Support)"
 
-    # ОНОВЛЕНО: Тепер використовуємо просто текстові slug ігор, бо класу MainGame більше немає
     ROLE_VALUES_BY_GAME = {
         "cs2": {"entry", "support", "igl", "awp", "lurk", "flex"},
         "valorant": {"duelist", "initiator", "controller", "sentinel", "flex"},
@@ -214,7 +212,7 @@ class Notification(models.Model):
         return f"To {self.recipient.username}: {self.message}"
 
 
-# ❗ ТЕПЕР DIRECT MESSAGE СТОЇТЬ ОКРЕМО, ЯК САМОСТІЙНА МОДЕЛЬ ❗
+
 class DirectMessage(models.Model):
     sender = models.ForeignKey(
         settings.AUTH_USER_MODEL, related_name="sent_messages", on_delete=models.CASCADE

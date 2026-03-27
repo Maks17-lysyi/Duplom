@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Tournaments | SquadUp{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/tournaments.css' %}">
+
+<div class="tournaments-container">
+    <div class="row mb-5 animate-fade-in-up">
+        <div class="col-lg-8 text-center text-lg-start mx-auto mx-lg-0">
+            <div class="badge mb-3" style="background: rgba(0,255,148,0.1); color: var(--success-glow, #00ff94); border: 1px solid rgba(0,255,148,0.3); font-size: 0.85rem; padding: 0.5em 1em; letter-spacing: 2px;">
+                COMPETITIVE ARENA
+            </div>
+            <h1 class="text-white fw-bold mb-3" style="font-size: 2.5rem; letter-spacing: -1px;">Tournaments & Events</h1>
+            <p class="text-muted" style="font-size: 1.1rem; line-height: 1.6; max-width: 600px;">
+                Compete against the best. Win prizes. Build your legacy. Join the most elite competitive events in the region.
+            </p>
+        </div>
+    </div>
+
+    <div class="squadup-card mb-5 p-3 p-md-4 animate-fade-in-up" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-slate, #334155); border-radius: 16px; backdrop-filter: blur(10px); overflow: visible !important; position: relative; z-index: 20;">
+        
+        <form id="tournament-filters-form" hx-get="{% url 'tournaments' %}" hx-target="#tournament-grid-container" hx-trigger="change, submit, keyup delay:500ms from:input[name='search']">
+            
+            <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-4 mb-4">
+                
+                <div class="dropdown game-selector-dropdown">
+                    <button class="btn btn-dark d-flex align-items-center gap-3 w-100 p-3 text-start border border-secondary rounded-3" 
+                            type="button" data-bs-toggle="dropdown" aria-expanded="false" 
+                            style="background: #0f172a; min-width: 250px;">
+                        
+                        <div id="selected-game-img-container" class="rounded d-flex align-items-center justify-content-center text-secondary" style="width: 32px; height: 42px; background: rgba(255,255,255,0.05); overflow: hidden;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                        </div>
+                        
+                        <div class="flex-grow-1">
+                            <div class="text-muted small fw-bold text-uppercase" style="font-size: 0.65rem; letter-spacing: 1px;">Select Game</div>
+                            <div id="selected-game-text" class="text-white fw-bold">All Games</div>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M6 9l6 6 6-6"></path></svg>
+                    </button>
+                    
+                    <ul class="dropdown-menu w-100 p-2 mt-2 shadow-lg" style="background: #0f172a; border: 1px solid var(--border-slate);">
+                        <li>
+                            <a class="dropdown-item game-option d-flex align-items-center gap-3 p-2 rounded text-white custom-hover" href="#" data-slug="" data-name="All Games" data-img="">
+                                <div class="rounded d-flex align-items-center justify-content-center text-secondary" style="width: 32px; height: 42px; background: rgba(255,255,255,0.05);">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                                </div>
+                                <span class="fw-bold">All Games</span>
+                            </a>
+                        </li>
+                        
+                        {% for game in game_choices %}
+                        <li>
+                            <a class="dropdown-item game-option d-flex align-items-center gap-3 p-2 rounded text-white custom-hover" href="#" data-slug="{{ game.slug }}" data-name="{{ game.name }}" data-img="{{ game.cover_url|default:'' }}">
+                                {% if game.cover_url %}
+                                    <img src="{{ game.cover_url }}" alt="{{ game.name }}" class="rounded" style="width: 32px; height: 42px; object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded d-flex align-items-center justify-content-center text-secondary" style="width: 32px; height: 42px; background: rgba(255,255,255,0.05);">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                                    </div>
+                                {% endif %}
+                                <span class="fw-bold">{{ game.name }}</span>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <input type="hidden" name="game" id="hidden-game-input" value="">
+
+                <div class="d-none d-lg-block" style="width: 1px; height: 40px; background: var(--border-slate);"></div>
+
+                <div class="flex-grow-1 position-relative">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" class="position-absolute" style="left: 16px; top: 50%; transform: translateY(-50%);">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" name="search" class="form-control bg-dark text-white border-secondary" placeholder="Search tournaments by name..." style="padding-left: 40px; height: 48px;">
+                </div>
+            </div>
+
+            <div class="d-flex border-top border-secondary pt-3 mt-2 gap-3">
+                <div class="form-check form-check-inline custom-radio-pill">
+                    <input class="form-check-input d-none" type="radio" name="status" id="status-upcoming" value="upcoming" checked>
+                    <label class="form-check-label px-4 py-2 rounded-pill fw-bold cursor-pointer" for="status-upcoming">Upcoming</label>
+                </div>
+                <div class="form-check form-check-inline custom-radio-pill">
+                    <input class="form-check-input d-none" type="radio" name="status" id="status-past" value="past">
+                    <label class="form-check-label px-4 py-2 rounded-pill fw-bold cursor-pointer" for="status-past">Past Results</label>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <div id="tournament-grid-container">
+        {% include "tournaments/partials/tournament_grid.html" %}
+    </div>
+
+</div>
+
+<style>
+    .custom-hover:hover {
+        background-color: rgba(255,255,255,0.05) !important;
+    }
+    
+    .custom-radio-pill .form-check-label {
+        background: rgba(255,255,255,0.05);
+        color: #94a3b8;
+        border: 1px solid transparent;
+        transition: all 0.2s;
+    }
+    
+    .custom-radio-pill input:checked + .form-check-label {
+        background: rgba(0, 255, 148, 0.1);
+        color: #00ff94;
+        border-color: rgba(0, 255, 148, 0.3);
+        box-shadow: 0 0 10px rgba(0,255,148,0.1);
+    }
+    
+    .cursor-pointer { cursor: pointer; }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const gameOptions = document.querySelectorAll('.game-option');
+        const hiddenInput = document.getElementById('hidden-game-input');
+        const selectedText = document.getElementById('selected-game-text');
+        const selectedImgContainer = document.getElementById('selected-game-img-container');
+        const form = document.getElementById('tournament-filters-form');
+
+        gameOptions.forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const slug = this.getAttribute('data-slug');
+                const name = this.getAttribute('data-name');
+                const imgSrc = this.getAttribute('data-img');
+                
+                selectedText.textContent = name;
+                
+                // Якщо є картинка — ставимо її, якщо ні — ставимо SVG іконку
+                if (imgSrc) {
+                    selectedImgContainer.innerHTML = `<img src="${imgSrc}" class="rounded" style="width: 100%; height: 100%; object-fit: cover;">`;
+                } else {
+                    selectedImgContainer.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>`;
+                }
+                
+                hiddenInput.value = slug;
+                form.dispatchEvent(new Event('change'));
+            });
+        });
+    });
+</script>
+
+{% endblock %}

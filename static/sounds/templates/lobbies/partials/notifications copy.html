@@ -1,12 +1,15 @@
+{% load static %}
+
 {% if has_new_notifs %}
-    <audio autoplay src="{% static 'sounds/direct_message_notificaion.mp3' %}"></audio>
+    <audio autoplay src="{% static 'sounds/direct_message_notification.mp3' %}"></audio>
 {% endif %}
+
 <div class="position-relative" id="bell-wrapper">
     
     <a href="#" id="squadup-bell-btn" class="d-flex align-items-center justify-content-center text-decoration-none position-relative" style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); transition: 0.2s;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
         {% if notifications.count > 0 or friend_requests.count > 0 %}
-        <span class="position-absolute top-0 start-100 translate-middle p-1 border border-dark rounded-circle" style="background-color: #00ff94; margin-left: -5px; margin-top: 5px; box-shadow: 0 0 8px rgba(0, 255, 148, 0.5);">
+        <span class="position-absolute top-0 start-100 translate-middle p-1 border border-dark rounded-circle" style="background-color: #c084fc; margin-left: -5px; margin-top: 5px;">
             <span class="visually-hidden">New alerts</span>
         </span>
         {% endif %}
@@ -15,7 +18,7 @@
     <div id="squadup-bell-menu" class="squadup-dropdown-menu p-0 shadow-lg position-absolute end-0" style="width: 320px; background: #0f172a; border: 1px solid var(--border-slate, #1e293b); border-radius: 12px; overflow: hidden; margin-top: 10px; z-index: 1050;">
         <div class="p-3 border-bottom border-slate d-flex justify-content-between align-items-center" style="background: rgba(0,0,0,0.2);">
             <h6 class="mb-0 text-white fw-bold">Notifications</h6>
-            <span class="badge" style="background: rgba(0, 255, 148, 0.1); color: #00ff94; border: 1px solid rgba(0, 255, 148, 0.3);">
+            <span class="badge" style="background: rgba(192, 132, 252, 0.2); color: #c084fc;">
                 {{ notifications.count|add:friend_requests.count }} New
             </span>
         </div>
@@ -23,17 +26,17 @@
         <div class="vstack" style="max-height: 400px; overflow-y: auto;">
             
             {% for freq in friend_requests %}
-                <div class="p-3 border-bottom border-slate dropdown-item-wrapper" style="background: rgba(0, 255, 148, 0.05);">
+                <div class="p-3 border-bottom border-slate dropdown-item-wrapper" style="background: rgba(0, 240, 255, 0.05);">
                     <div class="d-flex align-items-center gap-3 mb-2">
-                        <img src="https://ui-avatars.com/api/?name={{ freq.from_user.username|urlencode }}&background=1e293b&color=00ff94&rounded=true" width="36" height="36" class="rounded-circle" alt="Avatar">
+                        <img src="https://ui-avatars.com/api/?name={{ freq.from_user.username|urlencode }}&background=1e293b&color=00f0ff&rounded=true" width="36" height="36" class="rounded-circle" alt="Avatar">
                         <div class="text-white small lh-sm">
-                            <span class="fw-bold" style="color: #00ff94;">{{ freq.from_user.username }}</span> wants to be your friend!
+                            <span class="fw-bold" style="color: #00f0ff;">{{ freq.from_user.username }}</span> wants to be your friend!
                         </div>
                     </div>
                     <div class="d-flex gap-2 mt-2">
                         <form action="{% url 'accept_friend_request' freq.id %}" method="POST" class="m-0 flex-grow-1 ajax-form">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: #00ff94; color: #000; border-radius: 6px;">Accept</button>
+                            <button type="submit" class="btn btn-sm w-100 fw-bold" style="background: #00e58f; color: #000; border-radius: 6px;">Accept</button>
                         </form>
                         <form action="{% url 'reject_friend_request' freq.id %}" method="POST" class="m-0 flex-grow-1 ajax-form">
                             {% csrf_token %}
@@ -46,30 +49,18 @@
             {% for n in notifications %}
                 <div class="p-3 border-bottom border-slate dropdown-item-wrapper">
                     <div class="d-flex align-items-start gap-3 mb-2">
-                        
-                        {% if n.notification_type == 'direct_message' %}
-                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: rgba(0, 255, 148, 0.1); border: 1px solid #00ff94;">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff94" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                            </div>
-                        {% else %}
-                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: rgba(0, 255, 148, 0.1); border: 1px solid #00ff94;">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff94" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                            </div>
-                        {% endif %}
-
+                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: rgba(0,255,148,0.1); border: 1px solid #00ff94;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff94" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        </div>
                         <div class="flex-grow-1">
                             <div class="text-white small mb-1">{{ n.message }}</div>
                             <div class="text-muted" style="font-size: 0.7rem;">{{ n.created_at|timesince }} ago</div>
                         </div>
                     </div>
-                    
                     <div class="d-flex gap-2 mt-2">
                         {% if n.notification_type == 'lobby_invite' and n.lobby_id %}
-                            <a href="{% url 'read_notification' n.id %}?lobby={{ n.lobby_id }}" class="btn btn-sm w-100 fw-bold" style="background: #00ff94; color: #000; border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Accept</a>
+                            <a href="{% url 'read_notification' n.id %}?lobby={{ n.lobby_id }}" class="btn btn-sm w-100 fw-bold" style="background: #00e58f; color: #000; border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Accept</a>
                             <a href="{% url 'read_notification' n.id %}" class="btn btn-sm w-100 fw-bold ajax-link" style="background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.3); border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Dismiss</a>
-                        {% elif n.notification_type == 'direct_message' and n.sender %}
-                            <a href="{% url 'public_profile' n.sender.username %}" class="btn btn-sm w-100 fw-bold" style="background: #00ff94; color: #000; border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Reply</a>
-                            <a href="{% url 'read_notification' n.id %}" class="btn btn-sm w-100 fw-bold ajax-link" style="background: rgba(255,255,255,0.1); color: #fff; border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Dismiss</a>
                         {% else %}
                             <a href="{% url 'read_notification' n.id %}" class="btn btn-sm w-100 fw-bold ajax-link" style="background: rgba(255,255,255,0.1); color: #fff; border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Dismiss</a>
                         {% endif %}
@@ -92,17 +83,17 @@
     {% for freq in friend_requests %}
     <div class="squadup-toast p-3 rounded-3 shadow-lg position-relative" id="toast-req-{{ freq.id }}" style="background: #0f172a; border: 1px solid var(--border-slate); width: 320px; pointer-events: auto;">
         <div class="d-flex align-items-center gap-3 mb-2">
-            <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 40px; height: 40px; background: rgba(0, 255, 148, 0.1); border: 1px solid #00ff94; flex-shrink: 0;">
+            <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 40px; height: 40px; background: rgba(0, 240, 255, 0.1); border: 1px solid #00f0ff; flex-shrink: 0;">
                 {{ freq.from_user.username|slice:":2"|upper }}
             </div>
             <div class="text-white small lh-sm pe-3">
-                <span class="fw-bold" style="color: #00ff94;">{{ freq.from_user.username }}</span> wants to be your friend!
+                <span class="fw-bold" style="color: #00f0ff;">{{ freq.from_user.username }}</span> wants to be your friend!
             </div>
         </div>
         <div class="d-flex gap-2 mt-2">
             <form action="{% url 'accept_friend_request' freq.id %}" method="POST" class="m-0 flex-grow-1 ajax-form">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-sm w-100 fw-bold action-btn" style="background: #00ff94; color: #000; border-radius: 6px;">Accept</button>
+                <button type="submit" class="btn btn-sm w-100 fw-bold action-btn" style="background: #00e58f; color: #000; border-radius: 6px;">Accept</button>
             </form>
             <form action="{% url 'reject_friend_request' freq.id %}" method="POST" class="m-0 flex-grow-1 ajax-form">
                 {% csrf_token %}
@@ -115,29 +106,17 @@
     {% for n in notifications %}
     <div class="squadup-toast p-3 rounded-3 shadow-lg position-relative" id="toast-notif-{{ n.id }}" style="background: #0f172a; border: 1px solid var(--border-slate); width: 320px; pointer-events: auto;">
         <div class="d-flex align-items-start gap-3 mb-2">
-            
-            {% if n.notification_type == 'direct_message' %}
-                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: rgba(0, 255, 148, 0.1); border: 1px solid #00ff94;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff94" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                </div>
-            {% else %}
-                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: rgba(0, 255, 148, 0.1); border: 1px solid #00ff94;">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff94" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                </div>
-            {% endif %}
-
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: rgba(0,255,148,0.1); border: 1px solid #00ff94;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff94" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
             <div class="flex-grow-1 pe-2">
                 <div class="text-white small mb-1">{{ n.message }}</div>
             </div>
         </div>
-        
         <div class="d-flex gap-2 mt-2">
             {% if n.notification_type == 'lobby_invite' and n.lobby_id %}
-                <a href="{% url 'read_notification' n.id %}?lobby={{ n.lobby_id }}" class="btn btn-sm w-100 fw-bold action-btn" style="background: #00ff94; color: #000; border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Accept</a>
+                <a href="{% url 'read_notification' n.id %}?lobby={{ n.lobby_id }}" class="btn btn-sm w-100 fw-bold action-btn" style="background: #00e58f; color: #000; border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Accept</a>
                 <a href="{% url 'read_notification' n.id %}" class="btn btn-sm w-100 fw-bold ajax-link action-btn" style="background: rgba(255,0,0,0.1); color: #ff4444; border: 1px solid rgba(255,0,0,0.3); border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Dismiss</a>
-            {% elif n.notification_type == 'direct_message' and n.sender %}
-                <a href="{% url 'public_profile' n.sender.username %}" class="btn btn-sm w-100 fw-bold action-btn" style="background: #00ff94; color: #000; border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Reply</a>
-                <a href="{% url 'read_notification' n.id %}" class="btn btn-sm w-100 fw-bold ajax-link action-btn" style="background: rgba(255,255,255,0.1); color: #fff; border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Dismiss</a>
             {% else %}
                 <a href="{% url 'read_notification' n.id %}" class="btn btn-sm w-100 fw-bold ajax-link action-btn" style="background: rgba(255,255,255,0.1); color: #fff; border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Dismiss</a>
             {% endif %}
@@ -213,8 +192,25 @@
         }
     })();
 
-    // --- 3. ТОАСТИ ---
+    // --- 3. ТОАСТИ ТА ЗВУК ---
     (function() {
+        const notifySound = new Audio("{% static 'sounds/notification.wav' %}"); 
+        notifySound.volume = 0.5; // Гучність 50%
+        
+        window.chatSound = new Audio("{% static 'sounds/chat.mp3' %}");
+        window.chatSound.volume = 0.4;
+
+        const playNotifySound = () => {
+            let playPromise = notifySound.play();
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    console.log("🎵 Звук інвайту успішно зіграв!");
+                }).catch(error => {
+                    console.log("🔇 Браузер чекає на перший клік мишкою по сайту для відтворення звуку.");
+                });
+            }
+        };
+
         let container = document.getElementById('toast-fixed-container');
         if (!container) {
             container = document.createElement('div');
@@ -235,6 +231,8 @@
                 clone.id = tid + '-visible';
                 clone.style.animation = 'slideInRightToast 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards';
                 container.appendChild(clone);
+
+                playNotifySound();
 
                 let timer;
                 let isAfk = true;

@@ -163,17 +163,13 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
 
-    <div id="chat-box" 
-     hx-get="{% url 'direct_chat' target_user.username %}" 
-     hx-trigger="every 2s" 
-     hx-swap="innerHTML"
-     class="p-3" 
-     style="overflow-y: auto; height: 400px; display: block; width: 100%; overflow-x: hidden;">
-     
-     <div class="text-center text-muted mt-5">
-         <div class="spinner-border spinner-border-sm" role="status"></div>
-     </div>
-</div>
+    <div class="offcanvas-body d-flex flex-column p-0">
+        <div id="chat-box" class="flex-grow-1 p-3 overflow-auto d-flex flex-column gap-3"
+             hx-get="{% url 'direct_chat' target_user.username %}"
+             hx-trigger="every 2s, load"
+             hx-swap="innerHTML">
+             <div class="text-center text-muted mt-5 spinner-border spinner-border-sm" role="status"></div>
+        </div>
 
         <div class="p-3 border-top" style="border-color: rgba(255,255,255,0.05) !important; background: rgba(0,0,0,0.2);">
             <form hx-post="{% url 'direct_chat' target_user.username %}"

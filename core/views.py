@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.utils import timezone
 
+# ❗ Залишаємо тільки правильні імпорти без дублікатів
 from lobbies.models import Game, Lobby, Tournament
 from users.models import DirectMessage, FriendRequest, GamerProfile, Notification
 
@@ -222,7 +223,6 @@ def tournament_detail(request, pk):
 # ==========================================
 
 
-# ❗ НОВА ФУНКЦІЯ ПЕРЕГЛЯДУ ЧУЖОГО ПРОФІЛЮ
 @login_required
 def public_profile(request, username):
     """Сторінка публічного профілю іншого гравця"""
@@ -262,35 +262,41 @@ def public_profile(request, username):
 
 @login_required
 def direct_chat(request, username):
-    """Приватний чат між двома друзями"""
-    other_user = get_object_or_404(User, username=username)
-
-    # 1. Захист: чи вони дійсно друзі?
-    is_friend = request.user.gamer_profile.friends.filter(id=other_user.gamer_profile.id).exists()
-    if not is_friend:
-        messages.error(request, "You can only message your friends.")
-        return redirect("public_profile", username=username)
-
-    # 2. Якщо відправили нове повідомлення
+    target_user = get_object_or_404(User, username=username)
+    
+    # 1. ОБРОБКА ВІДПРАВКИ (POST)
     if request.method == "POST":
-        content = request.POST.get("content", "").strip()
+        content = request.POST.get("content")
         if content:
-            DirectMessage.objects.create(sender=request.user, receiver=other_user, content=content)
+            # Створюємо повідомлення
+            DirectMessage.objects.create(sender=request.user, receiver=target_user, content=content)
+            
+            # ❗ ВИПРАВЛЕНО: recipient замість user, і додано sender
+            Notification.objects.create(
+                recipient=target_user,
+                sender=request.user, 
+                notification_type="direct_message",
+                message=f"New message from {request.user.username}: {content[:30]}..." 
+            )
+            
+    # 2. ЛОГІКА ДЛЯ ЗВУКУ ОТРИМАННЯ
+    unread_messages = DirectMessage.objects.filter(sender=target_user, receiver=request.user, is_read=False)
+    has_new_messages = unread_messages.exists()
+    
+    if has_new_messages:
+        unread_messages.update(is_read=True)
 
-    # 3. Отримуємо всю історію переписки
-    chat_messages = DirectMessage.objects.filter(
-        Q(sender=request.user, receiver=other_user) | Q(sender=other_user, receiver=request.user)
-    ).order_by("created_at")
+    # 3. ВИВІД ЧАТУ
+    messages = DirectMessage.objects.filter(
+        Q(sender=request.user, receiver=target_user) | Q(sender=target_user, receiver=request.user)
+    ).order_by('created_at')
 
-    # Позначаємо вхідні повідомлення як прочитані
-    chat_messages.filter(receiver=request.user, is_read=False).update(is_read=True)
-
-    context = {
-        "other_user": other_user,
-        "chat_messages": chat_messages,
-    }
-    return render(request, "users/chat.html", context)
-
+    # ❗ ОСЬ ВІН - ПРАВИЛЬНИЙ ШЛЯХ ЗІ СКРІНШОТУ
+    return render(request, "lobbies/partials/chat_messages.html", {
+        "messages": messages,
+        "target_user": target_user,
+        "has_new_messages": has_new_messages, 
+    })
 
 @login_required
 def friends_view(request):
@@ -396,6 +402,9 @@ def get_notifications(request):
     friend_requests = FriendRequest.objects.filter(to_user=request.user, status="pending").order_by(
         "-created_at"
     )
+    
+    # ❗ ДОДАНО: Перевірка для звуку глобальних сповіщень
+    has_new_notifs = notifications.exists()
 
     return render(
         request,
@@ -403,6 +412,7 @@ def get_notifications(request):
         {
             "notifications": notifications,
             "friend_requests": friend_requests,
+            "has_new_notifs": has_new_notifs, # 👈 Тепер звук буде працювати!
         },
     )
 
@@ -424,9 +434,6 @@ def get_lobby_players(request, lobby_id):
     )
 
 
-# ==========================================
-# ❗ ФУНКЦІЯ ЗАПРОШЕННЯ В ЛОБІ ❗
-# ==========================================
 @login_required
 def invite_to_lobby(request, lobby_id, user_id):
     """Запросити друга у своє лобі"""
