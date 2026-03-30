@@ -271,7 +271,14 @@ def direct_chat(request, username):
             # Створюємо повідомлення
             DirectMessage.objects.create(sender=request.user, receiver=target_user, content=content)
             
-            # ❗ ВИПРАВЛЕНО: recipient замість user, і додано sender
+            # ⚡ АНТИ-СПАМ: ВИДАЛЯЄМО СТАРІ СПОВІЩЕННЯ ВІД ЦЬОГО Ж ВІДПРАВНИКА
+            Notification.objects.filter(
+                recipient=target_user,
+                sender=request.user, 
+                notification_type="direct_message"
+            ).delete()
+
+            # СТВОРЮЄМО ОДНЕ НОВЕ, СВІЖЕ СПОВІЩЕННЯ
             Notification.objects.create(
                 recipient=target_user,
                 sender=request.user, 

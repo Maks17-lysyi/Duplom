@@ -157,7 +157,7 @@
         </div>
 
         <div class="lobby-detail-card mb-4" style="min-height: 300px;">
-            <div id="live-players-container" hx-get="{% url 'get_lobby_players' lobby.id %}" hx-trigger="every 2s">
+            <div id="live-players-container" {% if user.is_authenticated %}hx-get="{% url 'get_lobby_players' lobby.id %}" hx-trigger="every 2s"{% endif %}>
                 {% include 'lobbies/partials/lobby_players.html' %}
             </div>
         </div>
@@ -236,31 +236,38 @@
                 <h6 class="mb-0 text-white fw-bold letter-spacing-1 text-uppercase">Squad Chat</h6>
             </div>
 
-            <div class="flex-grow-1 p-3 overflow-auto chat-container custom-scrollbar" id="squadup-chat-box" hx-get="{% url 'lobby_chat_messages' lobby.id %}" hx-trigger="load, every 3s">
-                <div class="text-center h-100 d-flex flex-column align-items-center justify-content-center text-muted small">
-                    <div class="spinner-border spinner-border-sm mb-3" style="color: var(--primary-glow);" role="status"></div>
-                    Establishing secure connection...
-                </div>
-            </div>
-
-            <div class="p-3 border-top border-slate" style="background: rgba(0,0,0,0.4);">
-                {% if user.is_authenticated %}
-                <form hx-post="{% url 'lobby_chat_send' lobby.id %}" hx-target="#squadup-chat-box" hx-on::after-request="this.reset()">
-                    {% csrf_token %}
-                    <div class="input-group chat-input-group">
-                        <input type="text" name="content" class="form-control" placeholder="Message squad..." required autocomplete="off">
-                        <button class="btn" type="submit">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                        </button>
+            {% if is_participant %}
+                <div class="flex-grow-1 p-3 overflow-auto chat-container custom-scrollbar" id="squadup-chat-box" hx-get="{% url 'lobby_chat_messages' lobby.id %}" hx-trigger="load, every 3s">
+                    <div class="text-center h-100 d-flex flex-column align-items-center justify-content-center text-muted small">
+                        <div class="spinner-border spinner-border-sm mb-3" style="color: var(--primary-glow);" role="status"></div>
+                        Establishing secure connection...
                     </div>
-                </form>
-                {% else %}
-                <div class="text-center p-2 rounded" style="background: rgba(255,255,255,0.05); border: 1px dashed var(--border-slate);">
-                    <a href="{% url 'login' %}?next={{ request.path }}" style="color: var(--success-glow, #00ff94); font-weight: bold; text-decoration: none;">LOGIN</a> 
-                    <span class="text-muted small">to access team chat</span>
                 </div>
-                {% endif %}
-            </div>
+
+                <div class="p-3 border-top border-slate" style="background: rgba(0,0,0,0.4);">
+                    <form hx-post="{% url 'lobby_chat_send' lobby.id %}" hx-target="#squadup-chat-box" hx-on::after-request="this.reset()">
+                        {% csrf_token %}
+                        <div class="input-group chat-input-group">
+                            <input type="text" name="content" class="form-control" placeholder="Message squad..." required autocomplete="off">
+                            <button class="btn" type="submit">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            {% else %}
+                <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-center p-4 text-center" style="background: rgba(0,0,0,0.2);">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-slate);">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    </div>
+                    <div class="text-white fw-bold mb-2">Chat Locked</div>
+                    <div class="text-muted small px-3 mb-4">Join the squad to view and send messages.</div>
+                    
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'login' %}?next={{ request.path }}" style="color: var(--success-glow, #00ff94); font-weight: bold; text-decoration: none; padding: 10px 20px; border: 1px dashed var(--success-glow); border-radius: 8px;">LOGIN TO JOIN</a>
+                    {% endif %}
+                </div>
+            {% endif %}
         </div>
 
     </div>
@@ -434,11 +441,11 @@
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const chatBox = document.getElementById('squadup-chat-box');
+        const chatForm = document.querySelector('form[hx-post]');
         if (!chatBox) return;
 
-        // Підключаємо звук
+        // 🎵 Той самий ідеальний звук
         const chatSound = new Audio("{% static 'sounds/chat.mp3' %}");
-        chatSound.volume = 0.4;
 
         // Функція скролу вниз
         const scrollToBottom = () => {
@@ -448,30 +455,45 @@
             });
         };
 
-        // Лічильник повідомлень. Рахуємо блоки .mb-2
-        let lastMessageCount = chatBox.querySelectorAll('.mb-2').length;
+        let lastMessageCount = chatBox.querySelectorAll('.mb-3').length;
+        let justSent = false; 
 
-        // Перший скрол після завантаження сторінки
+        // Перший скрол при завантаженні
         setTimeout(scrollToBottom, 300);
 
-        // Слухаємо HTMX оновлення
-        chatBox.addEventListener('htmx:afterSwap', function(event) {
-            // Рахуємо нову кількість повідомлень
-            const currentMessageCount = chatBox.querySelectorAll('.mb-2').length;
-
-            // Якщо повідомлень стало БІЛЬШЕ
-            if (currentMessageCount > lastMessageCount) {
-                console.log("📩 Нове повідомлення! Скролимо і граємо звук.");
+        // 🎵 ГРАЄМО ЗВУК ПРИ ВІДПРАВЦІ (Робимо його трохи тихішим)
+        if (chatForm) {
+            chatForm.addEventListener('submit', function() {
+                let sendSound = chatSound.cloneNode(); // Клонуємо, щоб звуки не перебивали один одного
+                sendSound.volume = 0.2; // Тихий "блінь" для себе
                 
+                let playPromise = sendSound.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(e => console.log("🔇 Звук чекає кліку."));
+                }
+                justSent = true; 
+            });
+        }
+
+        // 🎵 ГРАЄМО ЗВУК ПРИ ОТРИМАННІ + АВТОСКРОЛ
+        chatBox.addEventListener('htmx:afterSwap', function(event) {
+            const currentMessageCount = chatBox.querySelectorAll('.mb-3').length;
+
+            if (currentMessageCount > lastMessageCount) {
                 scrollToBottom();
                 
-                // Граємо звук (уникаємо помилки блокування браузером)
-                if (lastMessageCount > 0) {
-                    chatSound.play().catch(e => console.log("🔇 Звук чату чекає кліку по сторінці."));
+                // Якщо це чуже повідомлення
+                if (lastMessageCount > 0 && !justSent) {
+                    chatSound.volume = 0.5; // Нормальний гучний "блінь" для чужих повідомлень
+                    let playPromise = chatSound.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(e => console.log("🔇 Звук чекає кліку."));
+                    }
                 }
+                
+                justSent = false; 
             }
             
-            // Оновлюємо лічильник
             lastMessageCount = currentMessageCount;
         });
     });

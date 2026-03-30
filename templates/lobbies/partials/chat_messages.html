@@ -1,45 +1,46 @@
 {% load static %}
 
-{% if has_new_messages %}
-    <audio autoplay src="{% static 'sounds/chat_receive.mp3' %}"></audio>
-{% endif %}
-
-<div style="display: flex; flex-direction: column; width: 100%; gap: 12px; padding-bottom: 10px;">
-    
-    {% for msg in messages %}
-        {% if msg.sender == user %}
-            <div style="align-self: flex-end; max-width: 85%;">
-                <div style="background-color: #00ff94; color: #000; padding: 10px 14px; border-radius: 16px 16px 4px 16px; font-weight: 600; word-break: break-word; box-shadow: 0 4px 10px rgba(0, 255, 148, 0.2);">
-                    {{ msg.content }}
-                </div>
-                <div style="font-size: 11px; color: #94a3b8; text-align: right; margin-top: 4px;">
-                    {{ msg.created_at|date:"H:i" }}
-                </div>
-            </div>
-        {% else %}
-            <div style="align-self: flex-start; max-width: 85%;">
-                <div style="font-size: 12px; color: #00f0ff; font-weight: bold; margin-bottom: 4px; padding-left: 4px;">
-                    {{ msg.sender.username }}
-                </div>
-                <div style="background-color: #1e293b; color: #fff; padding: 10px 14px; border-radius: 16px 16px 16px 4px; border: 1px solid rgba(255,255,255,0.1); word-break: break-word; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
-                    {{ msg.content }}
-                </div>
-                <div style="font-size: 11px; color: #94a3b8; text-align: left; margin-top: 4px; padding-left: 4px;">
-                    {{ msg.created_at|date:"H:i" }}
-                </div>
+{% for message in messages %}
+    <div class="d-flex flex-column mb-3 {% if message.sender == user %}align-items-end{% else %}align-items-start{% endif %}">
+        
+        {% if message.sender != user %}
+            <div class="small fw-bold mb-1 ps-2" style="color: var(--primary-glow, #00f0ff); font-size: 0.75rem;">
+                {{ message.sender.username }}
             </div>
         {% endif %}
-    {% empty %}
-        <div style="text-align: center; color: #64748b; padding: 30px; font-size: 14px; font-weight: 500;">
-            No messages yet. Say hello! 👋
+
+        <div class="d-flex gap-2 {% if message.sender == user %}flex-row-reverse{% endif %}" style="max-width: 85%;">
+            
+            {% if message.sender != user %}
+                <img src="https://ui-avatars.com/api/?name={{ message.sender.username|urlencode }}&background=1e293b&color=00f0ff&rounded=true" width="28" height="28" class="rounded-circle align-self-end mb-1" style="border: 1px solid rgba(0,240,255,0.3);" alt="{{ message.sender.username }}">
+            {% endif %}
+
+            <div class="p-2 px-3 text-break shadow-sm" style="
+                border-radius: {% if message.sender == user %}16px 16px 4px 16px{% else %}16px 16px 16px 4px{% endif %};
+                background: {% if message.sender == user %}var(--success-glow, #00ff94){% else %}#1e293b{% endif %};
+                color: {% if message.sender == user %}#000{% else %}#fff{% endif %};
+                font-size: 0.9rem;
+                font-weight: 500;
+                border: 1px solid {% if message.sender == user %}transparent{% else %}rgba(255,255,255,0.1){% endif %};
+            ">
+                {{ message.content }}
+            </div>
         </div>
-    {% endfor %}
 
-</div>
-
+        <div class="small text-muted mt-1 px-2" style="font-size: 0.65rem;">
+            {{ message.created_at|date:"H:i" }}
+        </div>
+        
+    </div>
+{% empty %}
+    <div class="text-center h-100 d-flex flex-column align-items-center justify-content-center text-muted">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="mb-2 opacity-50"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <p class="small mb-0">Chat is empty.<br>Say hi to your squad!</p>
+    </div>
+{% endfor %}
 <script>
     (function() {
-        var chatBox = document.getElementById('chat-box');
+        var chatBox = document.getElementById('squadup-chat-box');
         if (chatBox) {
             chatBox.scrollTop = chatBox.scrollHeight;
         }

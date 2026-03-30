@@ -1,6 +1,5 @@
-{% if has_new_notifs %}
-    <audio autoplay src="{% static 'sounds/direct_message_notificaion.mp3' %}"></audio>
-{% endif %}
+{% load static %}
+
 <div class="position-relative" id="bell-wrapper">
     
     <a href="#" id="squadup-bell-btn" class="d-flex align-items-center justify-content-center text-decoration-none position-relative" style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); transition: 0.2s;">
@@ -46,23 +45,18 @@
             {% for n in notifications %}
                 <div class="p-3 border-bottom border-slate dropdown-item-wrapper">
                     <div class="d-flex align-items-start gap-3 mb-2">
-                        
-                        {% if n.notification_type == 'direct_message' %}
-                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: rgba(0, 255, 148, 0.1); border: 1px solid #00ff94;">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: rgba(0, 255, 148, 0.1); border: 1px solid #00ff94;">
+                            {% if n.notification_type == 'direct_message' %}
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff94" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                            </div>
-                        {% else %}
-                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: rgba(0, 255, 148, 0.1); border: 1px solid #00ff94;">
+                            {% else %}
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff94" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                            </div>
-                        {% endif %}
-
+                            {% endif %}
+                        </div>
                         <div class="flex-grow-1">
                             <div class="text-white small mb-1">{{ n.message }}</div>
                             <div class="text-muted" style="font-size: 0.7rem;">{{ n.created_at|timesince }} ago</div>
                         </div>
                     </div>
-                    
                     <div class="d-flex gap-2 mt-2">
                         {% if n.notification_type == 'lobby_invite' and n.lobby_id %}
                             <a href="{% url 'read_notification' n.id %}?lobby={{ n.lobby_id }}" class="btn btn-sm w-100 fw-bold" style="background: #00ff94; color: #000; border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Accept</a>
@@ -90,7 +84,7 @@
 <div id="hidden-toasts-data" style="display: none;">
     
     {% for freq in friend_requests %}
-    <div class="squadup-toast p-3 rounded-3 shadow-lg position-relative" id="toast-req-{{ freq.id }}" style="background: #0f172a; border: 1px solid var(--border-slate); width: 320px; pointer-events: auto;">
+    <div class="squadup-toast p-3 rounded-3 shadow-lg position-relative" id="toast-req-{{ freq.id }}" data-type="friend_request" style="background: #0f172a; border: 1px solid var(--border-slate); width: 320px; pointer-events: auto;">
         <div class="d-flex align-items-center gap-3 mb-2">
             <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style="width: 40px; height: 40px; background: rgba(0, 255, 148, 0.1); border: 1px solid #00ff94; flex-shrink: 0;">
                 {{ freq.from_user.username|slice:":2"|upper }}
@@ -113,24 +107,19 @@
     {% endfor %}
 
     {% for n in notifications %}
-    <div class="squadup-toast p-3 rounded-3 shadow-lg position-relative" id="toast-notif-{{ n.id }}" style="background: #0f172a; border: 1px solid var(--border-slate); width: 320px; pointer-events: auto;">
+    <div class="squadup-toast p-3 rounded-3 shadow-lg position-relative" id="toast-notif-{{ n.id }}" data-type="{{ n.notification_type }}" data-sender="{{ n.sender.username|default:'system' }}" style="background: #0f172a; border: 1px solid var(--border-slate); width: 320px; pointer-events: auto; transition: transform 0.2s ease;">
         <div class="d-flex align-items-start gap-3 mb-2">
-            
-            {% if n.notification_type == 'direct_message' %}
-                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: rgba(0, 255, 148, 0.1); border: 1px solid #00ff94;">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: rgba(0, 255, 148, 0.1); border: 1px solid #00ff94;">
+                {% if n.notification_type == 'direct_message' %}
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff94" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                </div>
-            {% else %}
-                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 36px; height: 36px; background: rgba(0, 255, 148, 0.1); border: 1px solid #00ff94;">
+                {% else %}
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ff94" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                </div>
-            {% endif %}
-
+                {% endif %}
+            </div>
             <div class="flex-grow-1 pe-2">
-                <div class="text-white small mb-1">{{ n.message }}</div>
+                <div class="text-white small mb-1 msg-text-content">{{ n.message }}</div>
             </div>
         </div>
-        
         <div class="d-flex gap-2 mt-2">
             {% if n.notification_type == 'lobby_invite' and n.lobby_id %}
                 <a href="{% url 'read_notification' n.id %}?lobby={{ n.lobby_id }}" class="btn btn-sm w-100 fw-bold action-btn" style="background: #00ff94; color: #000; border-radius: 6px; text-decoration: none; text-align: center; line-height: 1.5;">Accept</a>
@@ -154,7 +143,6 @@
 </style>
 
 <script>
-    // --- 1. AJAX КНОПКИ ---
     if (!window.ajaxSetupDone) {
         const hideElement = (el) => {
             if (el) {
@@ -185,36 +173,49 @@
         window.ajaxSetupDone = true;
     }
 
-    // --- 2. ДЗВІНОЧОК ---
-    (function() {
-        const btn = document.getElementById('squadup-bell-btn');
-        const menu = document.getElementById('squadup-bell-menu');
-        if (!btn || !menu) return;
+    if (!window.bellClickSetup) {
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('#squadup-bell-btn');
+            const menu = document.getElementById('squadup-bell-menu');
 
-        if (window.isBellOpen) menu.classList.add('show-menu');
-
-        btn.onclick = (e) => {
-            e.preventDefault(); e.stopPropagation();
-            window.isBellOpen = !window.isBellOpen;
-            if (window.isBellOpen) menu.classList.add('show-menu');
-            else menu.classList.remove('show-menu');
-        };
-
-        if (!window.bellClickOutside) {
-            document.addEventListener('click', (e) => {
-                const curMenu = document.getElementById('squadup-bell-menu');
-                const curBtn = document.getElementById('squadup-bell-btn');
-                if (window.isBellOpen && curMenu && !curMenu.contains(e.target) && !curBtn.contains(e.target)) {
-                    window.isBellOpen = false;
-                    curMenu.classList.remove('show-menu');
+            if (btn) {
+                e.preventDefault();
+                window.isBellOpen = !window.isBellOpen;
+                if (menu) {
+                    if (window.isBellOpen) menu.classList.add('show-menu');
+                    else menu.classList.remove('show-menu');
                 }
-            });
-            window.bellClickOutside = true;
+            } 
+            else if (window.isBellOpen && menu && !menu.contains(e.target)) {
+                window.isBellOpen = false;
+                menu.classList.remove('show-menu');
+            }
+        });
+        window.bellClickSetup = true;
+    }
+
+    (function() {
+        const menu = document.getElementById('squadup-bell-menu');
+        if (menu && window.isBellOpen) {
+            menu.style.transition = 'none'; 
+            menu.classList.add('show-menu');
+            setTimeout(() => menu.style.transition = '', 50);
         }
     })();
 
-    // --- 3. ТОАСТИ ---
     (function() {
+        const notifySound = new Audio("{% static 'sounds/direct_message_notificaion.mp3' %}"); 
+        notifySound.volume = 0.5;
+        
+        let lastSoundTime = 0; 
+
+        const playNotifySound = () => {
+            let playPromise = notifySound.play();
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {}).catch(error => { console.log("🔇 Браузер чекає кліку."); });
+            }
+        };
+
         let container = document.getElementById('toast-fixed-container');
         if (!container) {
             container = document.createElement('div');
@@ -224,17 +225,71 @@
             document.body.appendChild(container);
         }
 
-        let closedToasts = JSON.parse(sessionStorage.getItem('squadToasts_v8') || '[]');
+        let closedToasts = JSON.parse(sessionStorage.getItem('squadToasts_v13') || '[]');
 
         document.querySelectorAll('#hidden-toasts-data .squadup-toast').forEach(toast => {
             const tid = toast.id;
+            const notifType = toast.getAttribute('data-type');
+            const sender = toast.getAttribute('data-sender');
+            
+            const chatBox = document.getElementById('chat-box');
+            const isChatOpen = chatBox && chatBox.offsetWidth > 0 && chatBox.offsetHeight > 0;
             
             if (!closedToasts.includes(tid) && !document.getElementById(tid + '-visible')) {
                 
+                // Якщо ми в чаті — глушимо тоаст
+                if (notifType === 'direct_message' && isChatOpen) {
+                    closedToasts.push(tid);
+                    sessionStorage.setItem('squadToasts_v13', JSON.stringify(closedToasts));
+                    return; 
+                }
+
+                // ⚡ АНТИ-СПАМ: ГРУПУВАННЯ ПОВІДОМЛЕНЬ ВІД ОДНОГО ЮЗЕРА ⚡
+                if (notifType === 'direct_message' && sender) {
+                    const activeToast = Array.from(container.querySelectorAll('.squadup-toast')).find(
+                        t => t.getAttribute('data-sender') === sender && t.getAttribute('data-type') === 'direct_message'
+                    );
+
+                    if (activeToast) {
+                        // Тоаст від нього вже є на екрані! Просто оновлюємо текст!
+                        const newMsgText = toast.querySelector('.msg-text-content').innerText;
+                        activeToast.querySelector('.msg-text-content').innerText = newMsgText;
+                        
+                        // Робимо легенький ефект "пульсації"
+                        activeToast.style.transform = 'scale(1.05)';
+                        setTimeout(() => { activeToast.style.transform = 'scale(1)'; }, 150);
+
+                        // Звук грає, але з кулдауном 3 секунди
+                        const now = Date.now();
+                        if (now - lastSoundTime > 3000) {
+                            playNotifySound();
+                            lastSoundTime = now;
+                        }
+
+                        // "З'їдаємо" цей тоаст, щоб він не плодився
+                        closedToasts.push(tid);
+                        sessionStorage.setItem('squadToasts_v13', JSON.stringify(closedToasts));
+                        return; // ⛔ ЗУПИНЯЄМОСЬ ТУТ, НОВЕ ВІКНО НЕ СТВОРЮЄТЬСЯ
+                    }
+                }
+
+                // Максимум 3 різні пуші на екрані одночасно
+                const currentToasts = container.querySelectorAll('.squadup-toast');
+                if (currentToasts.length >= 3) {
+                    currentToasts[0].remove();
+                }
+
+                // Створюємо новий пуш, якщо від цього юзера ще немає
                 let clone = toast.cloneNode(true);
                 clone.id = tid + '-visible';
                 clone.style.animation = 'slideInRightToast 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards';
                 container.appendChild(clone);
+
+                const now = Date.now();
+                if (now - lastSoundTime > 3000) {
+                    playNotifySound();
+                    lastSoundTime = now;
+                }
 
                 let timer;
                 let isAfk = true;
@@ -242,7 +297,7 @@
                 const closeToast = () => {
                     if (!closedToasts.includes(tid)) {
                         closedToasts.push(tid);
-                        sessionStorage.setItem('squadToasts_v8', JSON.stringify(closedToasts));
+                        sessionStorage.setItem('squadToasts_v13', JSON.stringify(closedToasts));
                     }
                     clone.style.animation = 'slideOutRightToast 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards';
                     setTimeout(() => clone.remove(), 400);
@@ -264,14 +319,8 @@
                 document.addEventListener('keydown', wakeUp, {once: true});
 
                 clone.addEventListener('mouseenter', () => clearTimeout(timer));
-                
-                clone.addEventListener('mouseleave', () => {
-                    if (!isAfk) resetTimer(4000);
-                });
-
-                clone.querySelectorAll('.action-btn').forEach(b => {
-                    b.addEventListener('click', closeToast);
-                });
+                clone.addEventListener('mouseleave', () => { if (!isAfk) resetTimer(4000); });
+                clone.querySelectorAll('.action-btn').forEach(b => b.addEventListener('click', closeToast));
             }
         });
     })();

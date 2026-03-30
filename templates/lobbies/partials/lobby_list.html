@@ -1,10 +1,14 @@
 {% load static %}
 {% for lobby in lobbies %}
 <div class="col-md-6 col-xl-4 mb-4">
-    <div class="lobby-card-universal">
+    <div class="lobby-card-universal" style="
+        --theme-color: {% if lobby.game.slug == 'cs2' %}#f97316{% elif lobby.game.slug == 'valorant' %}#ff2e93{% elif lobby.game.slug == 'dota2' %}#ef4444{% elif lobby.game.slug == 'eafc26' %}#10b981{% elif lobby.game.slug == 'dbd' %}#a855f7{% else %}#00ff94{% endif %};
+        --theme-glow: {% if lobby.game.slug == 'cs2' %}rgba(249,115,22,0.15){% elif lobby.game.slug == 'valorant' %}rgba(255,46,147,0.15){% elif lobby.game.slug == 'dota2' %}rgba(239,68,68,0.15){% elif lobby.game.slug == 'eafc26' %}rgba(16,185,129,0.15){% elif lobby.game.slug == 'dbd' %}rgba(168,85,247,0.15){% else %}rgba(0,255,148,0.15){% endif %};
+        --theme-bg: {% if lobby.game.slug == 'cs2' %}rgba(249,115,22,0.1){% elif lobby.game.slug == 'valorant' %}rgba(255,46,147,0.1){% elif lobby.game.slug == 'dota2' %}rgba(239,68,68,0.1){% elif lobby.game.slug == 'eafc26' %}rgba(16,185,129,0.1){% elif lobby.game.slug == 'dbd' %}rgba(168,85,247,0.1){% else %}rgba(0,255,148,0.1){% endif %};
+    ">
         
         <div class="lc-header">
-            <div class="lc-badge">
+            <div class="lc-badge" style="color: var(--theme-color); border-color: var(--theme-color); background: var(--theme-bg);">
                 {% if lobby.game.slug == 'cs2' %}
                     {% if lobby.req_cs2_premier_rating_min or lobby.req_cs2_premier_rating_max %}
                         PREMIER
@@ -35,7 +39,7 @@
         </div>
 
         <div class="lc-hero">
-            <div class="lc-hero-icon">
+            <div class="lc-hero-icon" style="color: var(--theme-color); filter: drop-shadow(0 0 10px var(--theme-glow));">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                     <path d="M12 8v4l3 3"/>
@@ -43,7 +47,6 @@
             </div>
             <div class="lc-hero-value">
                 {% if lobby.game.slug == 'cs2' %}
-                    
                     {% if lobby.req_cs2_premier_rating_min or lobby.req_cs2_premier_rating_max %}
                         {% if lobby.req_cs2_premier_rating_min and lobby.req_cs2_premier_rating_max %}
                             {{ lobby.req_cs2_premier_rating_min }}-{{ lobby.req_cs2_premier_rating_max }}
@@ -53,7 +56,6 @@
                             Up to {{ lobby.req_cs2_premier_rating_max }}
                         {% endif %}
                         <span class="lc-hero-label">PREMIER</span>
-
                     {% elif lobby.req_cs2_faceit_lvl_min or lobby.req_cs2_faceit_lvl_max %}
                         {% if lobby.req_cs2_faceit_lvl_min and lobby.req_cs2_faceit_lvl_max %}
                             LVL {{ lobby.req_cs2_faceit_lvl_min }}-{{ lobby.req_cs2_faceit_lvl_max }}
@@ -63,17 +65,13 @@
                             Up to LVL {{ lobby.req_cs2_faceit_lvl_max }}
                         {% endif %}
                         <span class="lc-hero-label">FACEIT</span>
-
                     {% else %}
                         CS2 <span class="lc-hero-label">SQUAD</span>
                     {% endif %}
-                
                 {% elif lobby.game.slug == 'valorant' and lobby.req_valorant_rank != 'any' %}
                      {{ lobby.get_req_valorant_rank_display }} <span class="lc-hero-label">RANK</span>
-                
                 {% elif lobby.game.slug == 'dota2' and lobby.req_dota2_rank != 'any' %}
                      {{ lobby.get_req_dota2_rank_display }} <span class="lc-hero-label">MMR/RANK</span>
-                
                 {% else %}
                     LOBBY <span class="lc-hero-label">{{ lobby.game.name }}</span>
                 {% endif %}
@@ -98,13 +96,13 @@
         <div class="lc-players-section">
             <div class="lc-players-header">
                 <span>Players</span>
-                <span class="lc-players-count">{{ lobby.slots_filled }}/{{ lobby.slots_total }}</span>
+                <span class="lc-players-count" style="color: var(--theme-color);">{{ lobby.slots_filled }}/{{ lobby.slots_total }}</span>
             </div>
             
             <div class="lc-players-avatars">
-                <div class="lc-avatar-container host" style="z-index: 10;">
-                    <img src="https://ui-avatars.com/api/?name={{ lobby.host.username|urlencode }}&background=0f172a&color=00f0ff" alt="Host">
-                    <span class="lc-avatar-badge">H</span>
+                <div class="lc-avatar-container host" style="z-index: 10; border-color: var(--theme-color); box-shadow: 0 0 10px var(--theme-glow);">
+                    <img src="https://ui-avatars.com/api/?name={{ lobby.host.username|urlencode }}&background=0f172a&color=fff" alt="Host">
+                    <span class="lc-avatar-badge" style="background: var(--theme-color); color: #000;">H</span>
                 </div>
                 
                 {% for participant in lobby.participants.all|slice:":4" %}
@@ -131,7 +129,7 @@
 
         <div class="lc-footer">
             <span class="lc-time-ago">{{ lobby.created_at|timesince }} ago</span>
-            <a href="{% url 'lobby_detail' lobby.id %}" class="btn-lc-action">
+            <a href="{% url 'lobby_detail' lobby.id %}" class="btn-lc-action" style="border-color: var(--theme-color); color: var(--theme-color); box-shadow: 0 0 10px var(--theme-bg);">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 VIEW DETAILS
             </a>
@@ -147,7 +145,6 @@
 {% endfor %}
 
 <style>
-    /* LOBBY CARD NEON DESIGN */
     .lobby-card-universal {
         background-color: rgba(15, 23, 42, 0.8);
         border: 1px solid var(--border-slate, #334155);
@@ -162,20 +159,21 @@
         backdrop-filter: blur(10px);
     }
 
+    /* ОСЬ ВОНА, ЦЯ ПОЛОЧКА! БЕРЕ КОЛІР АВТОМАТИЧНО */
     .lobby-card-universal::before {
         content: '';
         position: absolute;
         top: 0; left: 0; right: 0;
         height: 4px;
-        background: linear-gradient(90deg, var(--success-glow, #00ff94), var(--primary-glow, #00f0ff));
-        opacity: 0.7;
+        background: var(--theme-color); 
+        opacity: 0.9;
         transition: opacity 0.3s ease;
     }
 
     .lobby-card-universal:hover {
         transform: translateY(-5px);
-        border-color: rgba(0, 255, 148, 0.4);
-        box-shadow: 0 10px 30px rgba(0, 255, 148, 0.15);
+        border-color: var(--theme-color);
+        box-shadow: 0 10px 30px var(--theme-glow);
     }
 
     /* HEADER */
@@ -187,10 +185,8 @@
     }
 
     .lc-badge {
-        background: rgba(0, 255, 148, 0.1);
-        color: var(--success-glow, #00ff94);
-        border: 1px solid rgba(0, 255, 148, 0.3);
         padding: 0.25rem 0.75rem;
+        border: 1px solid transparent;
         border-radius: 50px;
         font-size: 0.7rem;
         font-weight: 800;
@@ -226,20 +222,17 @@
         align-items: center;
         justify-content: center;
         padding: 1rem 0;
-        background: radial-gradient(circle at center, rgba(0, 255, 148, 0.05) 0%, transparent 60%);
+        background: radial-gradient(circle at center, rgba(255, 255, 255, 0.03) 0%, transparent 60%);
     }
 
     .lc-hero-icon {
-        color: var(--success-glow, #00ff94);
         margin-bottom: 0.5rem;
-        filter: drop-shadow(0 0 10px rgba(0, 255, 148, 0.5));
     }
 
     .lc-hero-value {
         font-size: 1.75rem;
         font-weight: 900;
         color: #fff;
-        text-shadow: 0 0 15px rgba(0, 255, 148, 0.3);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -294,10 +287,6 @@
         text-transform: uppercase;
     }
 
-    .lc-players-count {
-        color: var(--success-glow, #00ff94);
-    }
-
     .lc-players-avatars {
         display: flex;
         gap: -0.5rem;
@@ -321,17 +310,13 @@
     }
 
     .lc-avatar-container.host {
-        border-color: var(--success-glow, #00ff94);
         z-index: 4;
-        box-shadow: 0 0 10px rgba(0, 255, 148, 0.3);
     }
 
     .lc-avatar-badge {
         position: absolute;
         bottom: -2px;
         right: -2px;
-        background: var(--success-glow, #00ff94);
-        color: #000;
         font-size: 0.5rem;
         font-weight: 900;
         width: 14px;
@@ -352,7 +337,6 @@
         z-index: 1;
     }
 
-    /* СТИЛЬ ДЛЯ КРУЖЕЧКА +X (ДОДАНИЙ) */
     .lc-avatar-container.extra-players {
         display: flex;
         align-items: center;
@@ -379,8 +363,7 @@
 
     .btn-lc-action {
         background: transparent;
-        border: 2px solid var(--success-glow, #00ff94);
-        color: var(--success-glow, #00ff94);
+        border: 2px solid transparent;
         padding: 0.4rem 1.25rem;
         border-radius: 50px;
         font-size: 0.75rem;
@@ -391,12 +374,10 @@
         gap: 0.5rem;
         transition: all 0.3s ease;
         text-decoration: none;
-        box-shadow: 0 0 10px rgba(0, 255, 148, 0.1);
     }
 
     .btn-lc-action:hover {
-        background: rgba(0, 255, 148, 0.1);
-        color: var(--success-glow, #00ff94);
-        box-shadow: 0 0 15px rgba(0, 255, 148, 0.4);
+        filter: brightness(1.3);
+        transform: scale(1.05);
     }
 </style>

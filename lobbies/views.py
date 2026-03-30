@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
-from django.http import Http404
+from django.http import Http404, HttpResponse  # ❗ ДОДАНО HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from users.models import Notification
@@ -136,7 +136,6 @@ def lobby_end(request, lobby_id: int):
     return redirect("lobby_detail", lobby_id=lobby_id)
 
 
-# --- ОНОВЛЕНА ФУНКЦІЯ: ЗАПРОСИТИ ДРУГА ---
 @login_required
 def invite_friend(request, lobby_id: int, friend_id: int):
     if request.method != "POST":
@@ -145,7 +144,6 @@ def invite_friend(request, lobby_id: int, friend_id: int):
     lobby = get_object_or_404(Lobby, pk=lobby_id)
     friend = get_object_or_404(User, pk=friend_id)
 
-    # Перевірки
     if lobby.status != Lobby.Status.ACTIVE:
         messages.error(request, "This lobby is not active.")
         return redirect("lobby_detail", lobby_id=lobby_id)
@@ -158,12 +156,11 @@ def invite_friend(request, lobby_id: int, friend_id: int):
         messages.error(request, "You must be in the lobby to invite friends.")
         return redirect("lobby_detail", lobby_id=lobby_id)
 
-    # Перевіряємо, чи друг ВЖЕ в лобі
+
     if lobby.participants.filter(user=friend).exists():
         messages.info(request, f"{friend.username} is already in the squad.")
         return redirect("lobby_detail", lobby_id=lobby_id)
 
-    # Перевіряємо, чи ми вже кидали йому інвайт, який він ще не прочитав
     invite_exists = Notification.objects.filter(
         recipient=friend,
         sender=request.user,
@@ -188,7 +185,6 @@ def invite_friend(request, lobby_id: int, friend_id: int):
     return redirect("lobby_detail", lobby_id=lobby_id)
 
 
-# --- НОВІ ФУНКЦІЇ: ПРИЙНЯТИ АБО ВІДХИЛИТИ ЗАПРОШЕННЯ ---
 @login_required
 def accept_lobby_invite(request, notification_id: int):
     if request.method != "POST":
@@ -246,13 +242,13 @@ def lobby_chat_messages(request, lobby_id: int):
     )
 
 
+# ❗ ОНОВЛЕНА ФУНКЦІЯ
 @login_required
 def lobby_chat_send(request, lobby_id: int):
     if request.method != "POST":
         return redirect("lobby_detail", lobby_id=lobby_id)
 
     lobby = get_object_or_404(Lobby, pk=lobby_id)
-    # Ensure user is participant or host
     is_participant = lobby.participants.filter(user=request.user).exists()
     if not is_participant and lobby.host != request.user:
         return redirect("lobby_detail", lobby_id=lobby_id)
@@ -261,4 +257,5 @@ def lobby_chat_send(request, lobby_id: int):
     if content:
         ChatMessage.objects.create(lobby=lobby, sender=request.user, content=content)
 
+    # ПОВЕРНУЛИ ЯК БУЛО!
     return redirect("lobby_chat_messages", lobby_id=lobby_id)
