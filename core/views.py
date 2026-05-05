@@ -104,9 +104,12 @@ def home(request):
     total_lobbies = Lobby.objects.filter(
         status__in=[Lobby.Status.ACTIVE, Lobby.Status.FULL]
     ).count()
+    
+    # ❗ ОСЬ ТУТ БУЛА ЗАМІНА ❗
     upcoming_tournaments = Tournament.objects.filter(
-        is_active=True, date_time__gte=timezone.now()
+        status__in=['registration', 'active'], date_time__gte=timezone.now()
     ).order_by("date_time")[:3]
+    
     hot_lobbies = (
         Lobby.objects.select_related("host", "game")
         .filter(status=Lobby.Status.ACTIVE)
@@ -141,13 +144,14 @@ def home(request):
 
     return render(request, "home.html", context)
 
-
 def tournaments_list(request):
     """
     Tournaments Page: list upcoming and ongoing tournaments with AJAX filtering.
     """
     game_choices = Game.objects.filter(is_active=True).order_by("order")
-    qs = Tournament.objects.filter(is_active=True).select_related("game")
+    
+    # ❗ ОСЬ ТУТ БУЛА ЗАМІНА ❗
+    qs = Tournament.objects.filter(status__in=['registration', 'active']).select_related("game")
 
     game_slug = request.GET.get("game")
     if game_slug:
@@ -176,7 +180,6 @@ def tournaments_list(request):
         return render(request, "tournaments/partials/tournament_grid.html", context)
 
     return render(request, "tournaments/tournament_list.html", context)
-
 
 # ==========================================
 # ❗ ГЛОБАЛЬНИЙ ПОШУК

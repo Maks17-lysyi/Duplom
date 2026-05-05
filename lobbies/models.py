@@ -236,36 +236,77 @@ class ChatMessage(models.Model):
         return f"{self.sender}: {self.content[:20]}"
 
 
+class Team(models.Model):
+    """
+    Модель Команди для участі в турнірах.
+    """
+    name = models.CharField(max_length=100, unique=True, verbose_name="Назва команди")
+    captain = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="captained_teams", verbose_name="Капітан"
+    )
+    # Для простоти поки що можемо зберігати просто гравців через ManyToMany
+    players = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, related_name="teams", blank=True, verbose_name="Гравці"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+
+class GameServer(models.Model):
+    """
+    Пул нейтральних серверів для матчів (FACEIT-стайл).
+    """
+    ip_address = models.CharField(max_length=100, verbose_name="IP сервера (напр. 192.168.1.10:27015)")
+    password = models.CharField(max_length=50, verbose_name="Пароль сервера", blank=True)
+    is_busy = models.BooleanField(default=False, verbose_name="Зайнятий зараз?")
+
+    class Meta:
+        verbose_name = "Ігровий сервер"
+        verbose_name_plural = "Ігрові сервери"
+
+    def __str__(self):
+        status = "🔴 Зайнятий" if self.is_busy else "🟢 Вільний"
+        return f"{self.ip_address} - {status}"
+
+
 class Tournament(models.Model):
-    game = models.ForeignKey(
-        Game, on_delete=models.CASCADE, related_name="tournaments", verbose_name="Гра"
-    )
+    class Status(models.TextChoices):
+        REGISTRATION = "registration", "Реєстрація відкрита"
+        ACTIVE = "active", "Турнір триває"
+        FINISHED = "finished", "Завершено"
 
+    # ❗ НОВЕ: Формати матчів
+    class MatchFormat(models.TextChoices):
+        BO1 = "bo1", "Best of 1 (Одна карта)"
+        BO3 = "bo3", "Best of 3 (До 2 перемог)"
+        BO5 = "bo5", "Best of 5 (До 3 перемог)"
+
+    TEAM_CHOICES = [(4, '4 команди'), (8, '8 команд'), (16, '16 команд')]
+
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="tournaments", verbose_name="Гра")
     title = models.CharField(max_length=200, verbose_name="Заголовок турніру")
-
-    # НОВЕ ПОЛЕ ДЛЯ ЗАВАНТАЖЕННЯ ФАЙЛІВ КАРТИНОК
-    image = models.ImageField(
-        upload_to="tournaments/covers/", blank=True, null=True, verbose_name="Зображення (Файл)"
-    )
-
-    # Старе поле для силок залишаємо
-    image_url = models.URLField(
-        max_length=500, blank=True, null=True, verbose_name="Зображення (URL)"
-    )
-
-    format_type = models.CharField(
-        max_length=100,
-        verbose_name="Формат турніру",
-        help_text="Наприклад: 5v5, 1v1, Double Elimination",
-    )
+    
+    # ❗ НОВЕ: Поле для вибору BO1/BO3
+    match_format = models.CharField(max_length=10, choices=MatchFormat.choices, default=MatchFormat.BO1, verbose_name="Формат матчів (BO1/BO3)")
+    
+    image = models.ImageField(upload_to="tournaments/covers/", blank=True, null=True, verbose_name="Зображення (Файл)")
+    image_url = models.URLField(max_length=500, blank=True, null=True, verbose_name="Зображення (URL)")
+    
+    format_type = models.CharField(max_length=100, verbose_name="Формат турніру", help_text="Наприклад: 5v5, 1v1, Double Elimination")
     date_time = models.DateTimeField(verbose_name="Дата та час проведення")
     details = models.TextField(verbose_name="Деталі та формат")
     rules = models.TextField(verbose_name="Правила")
     prize = models.CharField(max_length=200, verbose_name="Приз")
     contacts = models.CharField(max_length=200, verbose_name="Контакти (Discord, Telegram тощо)")
-
+    
+    # Нові поля для сітки
+    max_teams = models.IntegerField(choices=TEAM_CHOICES, default=8, verbose_name="Макс. кількість команд")
+    registered_teams = models.ManyToManyField(Team, related_name="tournaments", blank=True, verbose_name="Зареєстровані команди")
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.REGISTRATION, verbose_name="Статус турніру")
+    
     created_at = models.DateTimeField(auto_now_add=True)
-    is_active = models.BooleanField(default=True, verbose_name="Активний")
 
     class Meta:
         ordering = ["-date_time"]
@@ -273,4 +314,45 @@ class Tournament(models.Model):
         verbose_name_plural = "Турніри"
 
     def __str__(self):
-        return f"{self.title} ({self.game.name})"
+        return f"{self.title} ({self.get_status_display()})"
+
+
+class Match(models.Model):
+    """
+    Модель окремого матчу в сітці турніру.
+    """
+    class Status(models.TextChoices):
+        PENDING = "pending", "Очікування команд"
+        READY = "ready", "Готовий до гри (Сервер видано)"
+        CONFLICT = "conflict", "⚠️ Конфлікт результатів"
+        FINISHED = "finished", "Завершено"
+
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name='matches', verbose_name="Турнір")
+    
+    # 1 - Чвертьфінал, 2 - Півфінал, 3 - Фінал
+    round_number = models.IntegerField(verbose_name="Етап (Раунд)") 
+    
+    team1 = models.ForeignKey(Team, related_name='match_team1', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Команда 1")
+    team2 = models.ForeignKey(Team, related_name='match_team2', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Команда 2")
+    
+    score_team1 = models.PositiveIntegerField(null=True, blank=True, verbose_name="Рахунок Команди 1")
+    score_team2 = models.PositiveIntegerField(null=True, blank=True, verbose_name="Рахунок Команди 2")
+
+    server = models.ForeignKey(GameServer, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Виділений сервер")
+    
+    screenshot_proof = models.ImageField(upload_to='tournament_proofs/', null=True, blank=True, verbose_name="Скріншот результату")
+    winner = models.ForeignKey(Team, related_name='match_winner', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Переможець")
+    
+    # Магія сітки: куди перейде переможець цього матчу
+    next_match = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Наступний матч у сітці")
+    
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING, verbose_name="Статус матчу")
+
+    class Meta:
+        verbose_name = "Матч турніру"
+        verbose_name_plural = "Матчі турнірів"
+
+    def __str__(self):
+        t1 = self.team1.name if self.team1 else "TBD"
+        t2 = self.team2.name if self.team2 else "TBD"
+        return f"{self.tournament.title} | {t1} vs {t2} | Раунд {self.round_number}"

@@ -21,4 +21,16 @@ urlpatterns = [
         views.reject_lobby_invite,
         name="reject_lobby_invite",
     ),
+    
+    # ==========================================
+    # URL-АДРЕСИ ДЛЯ ТУРНІРІВ
+    # ==========================================
+    path("tournaments/", views.tournament_list, name="tournament_list"),
+    path("tournaments/<int:tournament_id>/", views.tournament_detail, name="tournament_detail"),
+    path("tournaments/<int:tournament_id>/start/", views.tournament_start, name="tournament_start"),
+    path("tournaments/<int:tournament_id>/join/", views.tournament_join, name="tournament_join"),
+    # URL-АДРЕСИ ДЛЯ МАТЧІВ
+    path("matches/<int:match_id>/", views.match_detail, name="match_detail"),
+    path("matches/<int:match_id>/assign-server/", views.match_assign_server, name="match_assign_server"),
+    path("matches/<int:match_id>/set-winner/", views.match_set_winner, name="match_set_winner"),
 ]

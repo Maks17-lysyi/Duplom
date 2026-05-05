@@ -1,0 +1,1 @@
+web: gunicorn squadup.wsgi:application
