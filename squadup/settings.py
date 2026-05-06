@@ -17,7 +17,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-b83(%v73*giruh(mz&yjk
 # Якщо ми на Railway, змінна RAILWAY_ENVIRONMENT_NAME буде існувати (DEBUG буде False)
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_TRUSTED_ORIGINS = ['https://*.up.railway.app']
 
 # Application definition
