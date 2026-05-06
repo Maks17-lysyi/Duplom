@@ -15,7 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-b83(%v73*giruh(mz&yjk_jc74(nu9yuicn=f9zawi0=_f51@f")
 
 # Якщо ми на Railway, змінна RAILWAY_ENVIRONMENT_NAME буде існувати (DEBUG буде False)
-DEBUG = os.environ.get('RAILWAY_ENVIRONMENT_NAME') is None
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = ['https://*.up.railway.app']
