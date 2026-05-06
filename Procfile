@@ -1,2 +1,2 @@
 release: python manage.py migrate
-web: gunicorn squadup.wsgi:application
+web: python manage.py collectstatic --noinput && gunicorn squadup.wsgi:application
