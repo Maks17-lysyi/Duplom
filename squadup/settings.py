@@ -27,7 +27,9 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "cloudinary_storage",  # <-- Додано перед staticfiles
     "django.contrib.staticfiles",
+    "cloudinary",          # <-- Додано сюди
     "django.contrib.sites",
     # Local apps
     "core",
@@ -128,6 +130,15 @@ LOGOUT_REDIRECT_URL = "home"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# --- НАЛАШТУВАННЯ ДЛЯ ЗАВАНТАЖЕННЯ ЗОБРАЖЕНЬ (MEDIA) ---
+# --- НАЛАШТУВАННЯ ДЛЯ ЗАВАНТАЖЕННЯ ЗОБРАЖЕНЬ (MEDIA / CLOUDINARY) ---
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# Вказуємо Django використовувати Cloudinary для зберігання завантажених користувачами файлів
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
+# Підтягуємо секретний URL Cloudinary зі змінних оточення (якщо він є)
+if os.environ.get("CLOUDINARY_URL"):
+    CLOUDINARY_STORAGE = {
+        'CLOUDINARY_URL': os.environ.get('CLOUDINARY_URL')
+    }
